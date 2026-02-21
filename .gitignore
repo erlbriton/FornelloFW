@@ -1,0 +1,35 @@
+# STM32CubeIDE build artifacts
+/Debug/
+/Release/
+/build/
+/out/
+
+# IDE settings
+/.settings/
+/.metadata/
+/.vscode/
+/.idea/
+
+# Launch configs (необязательные для сборки)
+/*.launch
+
+# Логи и временные файлы
+*.log
+*.swp
+*.swo
+*.bak
+
+# Генерация кода CubeMX (файл ioc можно хранить!)
+/MXGenerated/
+
+# Системные файлы ОС
+.DS_Store
+Thumbs.db
+
+#Драйверы
+/Drivers/
+/FornoAD2/
+/Core/Startup/
+/Core/Src/Backup/
+/Core/Inc/Backup/
+/Startup/
