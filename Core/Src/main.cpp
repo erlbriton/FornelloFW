@@ -116,21 +116,21 @@ int main(void)
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Stop_IT(&htim7);
-	LL_SPI_Enable(SPI3);
+  LL_SPI_Enable(SPI3);
 	//---------------------Сброс HC595--------------------------------
 
 	GPIOC->BSRR = GPIO_PIN_6; //Latch on
 	GPIOC->BSRR = GPIO_PIN_6 << 16U; //Latch off
-	GPIOA->BSRR = GPIO_PIN_8; //MR on
+	GPIOC->BSRR = GPIO_PIN_9; //MR on
 	//---------------------------------------------------------------
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_ADC_Start_DMA(&hadc1, Control::adcTemp, 2);
 	HAL_Delay(1000); //Без этой паузы не работает восстановление режима приготовления при пропадании питания
 	HAL_TIM_Base_Start(&htim3);
 	HAL_ADC_Start(&hadc2);
-	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
-	Sensor_init();
-	HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);//Запускаем энкодер
+	Sensor_init();//Температура платы DS18B20
+	HAL_NVIC_EnableIRQ(EXTI2_IRQn);//Прерывания энкодера
 	//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 	GPIOC->BSRR = GPIO_PIN_4;	//DIR на передачу
 	GPIOA->BSRR = GPIO_PIN_12 << 16U;	//Свет выкл
@@ -152,9 +152,9 @@ int main(void)
  TIM2 - Энкодер
  TIM3 - Прерывание для ADC1
  TIM4- Часы 1 sec
- TIM5 - Защита от длительного времени включенных тенов(эксперимент пока)
+ TIM5 - Защита от залипших контактов реле
  TIM6 - Прерывание для проверки максимальной температуры (10sec)
- TIM7 -
+ TIM7 - Защита от длительного времени включенных тенов(эксперимент пока)
 
 
 
@@ -233,7 +233,10 @@ while (1) {
 			}
 			Heat::setOutCooler(); //Вкл-выкл. внешнего кулера
 			buf_485[11] = modeCookAveADC;
-			HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
+			if (huart3.gState == HAL_UART_STATE_READY) {
+			 HAL_UART_Transmit_DMA(&huart3, buf_485, 20);
+			}
+			//HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */

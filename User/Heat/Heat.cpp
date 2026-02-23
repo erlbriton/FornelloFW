@@ -46,7 +46,7 @@ void Heat::TransmitToTENs(vu8 dataTransmit) {
 //	buf_485[13] = downIn; //Пламя внизу
 //	buf_485[15] = grillIn; //Пламя вверху
 //	buf_485[14] = rightIn; //Пламя сбоку
-	HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
+	//HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
 //	uint8_t rIn = rightIn << 2;          //Читаем...
 //	uint8_t gIn = grillIn << 1;          //...включенные...
 //	uint8_t dIn = downIn  << 0;           //...выходы HC595

@@ -18,7 +18,7 @@ void ADCManager::handleADCConversionComplete(ADC_HandleTypeDef* hadc) {
         //#################################Для калибровки###################################################
 //        buf_485[4] = adcTemp[0] / 1000;
 //        buf_485[3] = adcTemp[0] / 100 % 10;
-//        buf_485[2] = adcTemp[0] / 10 % 10;
+//        buf_485[2] = adcTemp[0] / 10 % 10;EXTI
 //        buf_485[1] = adcTemp[0] % 10;
 //        HAL_UART_Transmit_IT(&huart3, buf_485, 20);
 //        HAL_Delay(1000);
