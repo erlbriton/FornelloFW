@@ -56,8 +56,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
-vu8 buf_485[20];//Массив для посылки в дисплей
+vu8 buf_485[21];
+//vu8 buf_485[20];//Массив для посылки в дисплей
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -128,9 +128,9 @@ int main(void)
 	HAL_Delay(1000); //Без этой паузы не работает восстановление режима приготовления при пропадании питания
 	HAL_TIM_Base_Start(&htim3);
 	HAL_ADC_Start(&hadc2);
-	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);//Запускаем энкодер
+	HAL_TIM_Encoder_Start_IT(&htim2, TIM_CHANNEL_ALL);//Запускаем энкодер
 	Sensor_init();//Температура платы DS18B20
-	HAL_NVIC_EnableIRQ(EXTI2_IRQn);//Прерывания энкодера
+	//HAL_NVIC_EnableIRQ(EXTI2_IRQn);//Прерывания энкодера
 	//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 	GPIOC->BSRR = GPIO_PIN_4;	//DIR на передачу
 	GPIOA->BSRR = GPIO_PIN_12 << 16U;	//Свет выкл
@@ -233,10 +233,12 @@ while (1) {
 			}
 			Heat::setOutCooler(); //Вкл-выкл. внешнего кулера
 			buf_485[11] = modeCookAveADC;
-			if (huart3.gState == HAL_UART_STATE_READY) {
-			 HAL_UART_Transmit_DMA(&huart3, buf_485, 20);
-			}
-			//HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
+			buf_485[0] = 151;
+			buf_485[19] = 151;
+//			if (huart3.gState == HAL_UART_STATE_READY) {
+//			 HAL_UART_Transmit_DMA(&huart3, buf_485, 20);
+//			}
+			HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */
@@ -257,15 +259,14 @@ void SystemClock_Config(void)
   {
   }
   LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
-  LL_RCC_HSI_SetCalibTrimming(16);
-  LL_RCC_HSI_Enable();
+  LL_RCC_HSE_Enable();
 
-   /* Wait till HSI is ready */
-  while(LL_RCC_HSI_IsReady() != 1)
+   /* Wait till HSE is ready */
+  while(LL_RCC_HSE_IsReady() != 1)
   {
 
   }
-  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSI, LL_RCC_PLLM_DIV_8, 168, LL_RCC_PLLP_DIV_2);
+  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, LL_RCC_PLLM_DIV_4, 168, LL_RCC_PLLP_DIV_2);
   LL_RCC_PLL_Enable();
 
    /* Wait till PLL is ready */
