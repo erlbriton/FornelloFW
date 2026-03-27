@@ -209,7 +209,7 @@ int main(void)
 //HAL_TIM_Base_Start_IT(&htim7);
 HAL_Delay(500);
 //HAL_TIM_Base_Stop_IT(&htim7);
-GPIOB->BSRR = GPIO_PIN_15 << 16U; //Спикер выкл
+GPIOA->BSRR = GPIO_PIN_8 << 16U; //Спикер выкл
 //Button button;
 //Control control;
 //FryModeLambda fryModeLambda;
@@ -234,11 +234,10 @@ while (1) {
 			Heat::setOutCooler(); //Вкл-выкл. внешнего кулера
 			buf_485[11] = modeCookAveADC;
 			buf_485[0] = 151;
-			buf_485[19] = 151;
-//			if (huart3.gState == HAL_UART_STATE_READY) {
-//			 HAL_UART_Transmit_DMA(&huart3, buf_485, 20);
-//			}
-			HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
+			buf_485[20] = 151;
+			if (huart3.gState == HAL_UART_STATE_READY) {
+			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
+			}
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */
