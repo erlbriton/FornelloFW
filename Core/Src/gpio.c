@@ -64,9 +64,9 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ThreeTen_GPIO_Port, ThreeTen_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Ioright_Pin Iodown_Pin Iogrl_Pin */
-  GPIO_InitStruct.Pin = Ioright_Pin|Iodown_Pin|Iogrl_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pins : EXTI_Right_Pin EXTI_Down_Pin EXTI_Grl_Pin */
+  GPIO_InitStruct.Pin = EXTI_Right_Pin|EXTI_Down_Pin|EXTI_Grl_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
@@ -151,6 +151,10 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(Led_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
