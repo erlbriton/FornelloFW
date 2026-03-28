@@ -1,8 +1,8 @@
 #include "melody_gpio.hpp"
 #include "main.h"
 
-extern TIM_HandleTypeDef htim1;
-//extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim12;
+extern TIM_HandleTypeDef htim7;
 
 uint32_t MelodyPlayer::noteTimeout = 0;
 uint16_t MelodyPlayer::currentNoteIdx = 0;
@@ -18,30 +18,28 @@ static bool isPlaying = false;
 
 void MelodyPlayer::setFrequency(uint16_t frequency) {
     if (frequency == 0) {
-        // Устанавливаем скважность в 0 и останавливаем ШИМ
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
-        HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+        __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 0);
+        HAL_TIM_PWM_Stop(&htim12, TIM_CHANNEL_2);
         return;
     }
 
-    // Расчет периода при PSC = 167 (частота таймера 1 МГц)
-    uint32_t target_base = 1000000;
+    // УМЕНЬШАЕМ базу, чтобы ПОВЫСИТЬ тон.
+    // Попробуем 200 000 (в 10 раз меньше, чем когда звук был просто "низким")
+    uint32_t timer_base_freq = 2000000;
+
+    // Если 2 000 000 был низким, а 10 000 000 стал ЕЩЕ ниже,
+    // попробуем пойти вниз: 500 000
+    uint32_t target_base = 500000;
+
     uint32_t period = target_base / frequency;
 
-    // Ограничения для 16-битного таймера (от 2 до 65535)
     if (period < 2) period = 2;
     if (period > 65535) period = 65535;
 
-    // 1. Устанавливаем новый период (частоту ноты)
-    __HAL_TIM_SET_AUTORELOAD(&htim1, (uint32_t)(period - 1));
+    __HAL_TIM_SET_AUTORELOAD(&htim12, (uint32_t)(period - 1));
+    __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, (uint32_t)(period / 2));
 
-    // 2. Устанавливаем скважность 50% (чистый меандр)
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (uint32_t)(period / 2));
-
-    // 3. Запускаем ШИМ.
-    // Поскольку в Init включен AutomaticOutput, вызов MOE вручную не обязателен,
-    // но HAL_TIM_PWM_Start всё равно нужен для активации канала.
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);
 }
 
 void MelodyPlayer::playPodmoskovnye() {
@@ -78,12 +76,12 @@ void MelodyPlayer::processNextNoteAsync() {
 
         htim5.Instance->SR &= ~0x0001;
         htim6.Instance->SR &= ~0x0001;
-        htim4.Instance->SR &= ~0x0001;
+        htim10.Instance->SR &= ~0x0001;
 
         // 2. Старт таймеров
         HAL_TIM_Base_Start_IT(&htim5);
         HAL_TIM_Base_Start_IT(&htim6);
-        HAL_TIM_Base_Start(&htim4);
+        HAL_TIM_Base_Start(&htim10);
 
         // 3. Включение USART
         USART1->CR1 |= USART_CR1_UE;
@@ -111,7 +109,7 @@ void MelodyPlayer::processNextNoteAsync() {
     // 6. Переходим к следующему индексу
     currentNoteIdx++;
 }
-//
-//extern "C" void TIM7_Music_Handler(void) {
-//    MelodyPlayer::processNextNoteAsync();
-//}
+
+extern "C" void TIM7_Music_Handler(void) {
+    MelodyPlayer::processNextNoteAsync();
+}

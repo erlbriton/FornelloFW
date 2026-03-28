@@ -105,7 +105,6 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM1_Init();
   MX_TIM2_Init();
-  MX_TIM6_Init();
   MX_TIM7_Init();
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
@@ -114,6 +113,8 @@ int main(void)
   MX_TIM4_Init();
   MX_SPI3_Init();
   MX_TIM5_Init();
+  MX_TIM6_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Stop_IT(&htim7);
   LL_SPI_Enable(SPI3);

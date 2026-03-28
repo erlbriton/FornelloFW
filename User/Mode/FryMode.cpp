@@ -22,7 +22,7 @@ void FryModeLambda::firstRegim(vu8 tempFirst) {
 	for (uint8_t i = 0; i < sizeof(indexesToClear)/sizeof(indexesToClear[0]); ++i) {
 	    buf_485[indexesToClear[ i ] ] = 0;
 	}
-	buf_485[0] = buf_485[19] = 151; //Проверочный код посылки
+	buf_485[0] = buf_485[20] = 151; //Проверочный код посылки
 	buf_485[8] = tempFirst % 100 % 10; //Единицы)
 	buf_485[9] = tempFirst % 100 / 10; //Десятки
 	buf_485[10] = tempFirst / 100;     //Сотни
@@ -42,7 +42,7 @@ void FryModeLambda::firstRegim(vu8 tempFirst) {
 void FryModeLambda::modeWrite(vu8 modeCookAveADC) {
 	settedMode = Fram::elementFram(1);
 	buf_485[0] = 151;
-	buf_485[19] = 151;
+	buf_485[20] = 151;
 	buf_485[11] = settedMode;
 }
 //-----------------------------------------Методы режимов(массив лямбда функций)----------------------------------------------

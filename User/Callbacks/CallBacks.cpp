@@ -32,7 +32,7 @@ void ADCManager::handleADCConversionComplete(ADC_HandleTypeDef* hadc) {
 const TimerManager::TimerMap TimerManager::timerMap[ ] = {
 	{ TIM4,  &TimerManager::handleTIM4  },
     { TIM5,  &TimerManager::handleTIM5  },
-    { TIM6,  &TimerManager::handleTIM6  },
+    //{ TIM6,  &TimerManager::handleTIM6  },//Убрал так как использую WatchDog
     //{ TIM7,  &TimerManager::handleTIM7  },
     { TIM9,  &TimerManager::handleTIM9  },
     { TIM10, &TimerManager::handleTIM10 },
@@ -122,9 +122,9 @@ void TimerManager::handleTIM10() {
     }
 }
 
-void TimerManager::handleTIM6() {
-	(Control::ovenTemper >= Heat::tempMax) && (Button::regim1Button(), 0);
-}
+//void TimerManager::handleTIM6() {
+//	(Control::ovenTemper >= Heat::tempMax) && (Button::regim1Button(), 0);
+//}
 void TimerManager::handleTIM5() {
 	Protection::TIM5_Handler();
 }

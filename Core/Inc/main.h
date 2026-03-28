@@ -85,10 +85,10 @@ void Error_Handler(void);
 #define ResC0_GPIO_Port GPIOC
 #define Mode_Pin GPIO_PIN_1
 #define Mode_GPIO_Port GPIOC
-#define Temp_Pin GPIO_PIN_2
+#define ResC2_Pin GPIO_PIN_2
+#define ResC2_GPIO_Port GPIOC
+#define Temp_Pin GPIO_PIN_3
 #define Temp_GPIO_Port GPIOC
-#define ResC3_Pin GPIO_PIN_3
-#define ResC3_GPIO_Port GPIOC
 #define ResA0_Pin GPIO_PIN_0
 #define ResA0_GPIO_Port GPIOA
 #define OE_Pin GPIO_PIN_1

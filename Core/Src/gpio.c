@@ -70,8 +70,8 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ResC0_Pin ResC3_Pin ResA8_Pin ResC11_Pin */
-  GPIO_InitStruct.Pin = ResC0_Pin|ResC3_Pin|ResA8_Pin|ResC11_Pin;
+  /*Configure GPIO pins : ResC0_Pin ResC2_Pin ResA8_Pin ResC11_Pin */
+  GPIO_InitStruct.Pin = ResC0_Pin|ResC2_Pin|ResA8_Pin|ResC11_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);

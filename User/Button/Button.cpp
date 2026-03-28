@@ -179,7 +179,7 @@ vu8 Button::encCount() {
             if (settedMode != set) {
                 byte0Fram = Fram::framRD0byte();
                 buf_485[0] = 151;
-                buf_485[19] = 151;
+                buf_485[20] = 151;
                 // Разложение числа на разряды для индикации
                 buf_485[8] = byte0Fram % 10;          // Единицы
                 buf_485[9] = (byte0Fram / 10) % 10;   // Десятки

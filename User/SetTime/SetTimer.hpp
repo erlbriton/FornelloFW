@@ -38,7 +38,7 @@ public:
 		buf_485[2] = minutesSet  / 10;
 		buf_485[3] = hoursSet % 10;
 		buf_485[4] = hoursSet / 10;
-		buf_485[19] = 151;
+		buf_485[20] = 151;
 		HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
 		return memTime = TIM2->CNT;
 	}

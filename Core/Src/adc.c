@@ -36,7 +36,6 @@ void MX_ADC1_Init(void)
 
   /* USER CODE END ADC1_Init 0 */
 
-  ADC_AnalogWDGConfTypeDef AnalogWDGConfig = {0};
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC1_Init 1 */
@@ -62,21 +61,9 @@ void MX_ADC1_Init(void)
     Error_Handler();
   }
 
-  /** Configure the analog watchdog
-  */
-  AnalogWDGConfig.WatchdogMode = ADC_ANALOGWATCHDOG_SINGLE_REG;
-  AnalogWDGConfig.HighThreshold = 0;
-  AnalogWDGConfig.LowThreshold = 0;
-  AnalogWDGConfig.Channel = ADC_CHANNEL_12;
-  AnalogWDGConfig.ITMode = ENABLE;
-  if (HAL_ADC_AnalogWDGConfig(&hadc1, &AnalogWDGConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Channel = ADC_CHANNEL_13;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_84CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -159,7 +146,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
 
     __HAL_RCC_GPIOC_CLK_ENABLE();
     /**ADC1 GPIO Configuration
-    PC2     ------> ADC1_IN12
+    PC3     ------> ADC1_IN13
     */
     GPIO_InitStruct.Pin = Temp_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
@@ -224,7 +211,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC1_CLK_DISABLE();
 
     /**ADC1 GPIO Configuration
-    PC2     ------> ADC1_IN12
+    PC3     ------> ADC1_IN13
     */
     HAL_GPIO_DeInit(Temp_GPIO_Port, Temp_Pin);
 
