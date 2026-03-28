@@ -69,7 +69,7 @@
 #define delay_sck 30 //задержка для клока
 
 class Fram {
-	private:
+	public://private:
 	inline static vu8 massive_wr[8];//Массив для записи во FRAM память
 	inline static vu8 massive_rd[8];//Массив для считывания из FRAM памяти
 public:

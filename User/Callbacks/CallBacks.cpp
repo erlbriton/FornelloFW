@@ -18,7 +18,7 @@ void ADCManager::handleADCConversionComplete(ADC_HandleTypeDef* hadc) {
         //#################################Для калибровки###################################################
 //        buf_485[4] = adcTemp[0] / 1000;
 //        buf_485[3] = adcTemp[0] / 100 % 10;
-//        buf_485[2] = adcTemp[0] / 10 % 10;EXTI
+//        buf_485[2] = adcTemp[0] / 10 % 10;
 //        buf_485[1] = adcTemp[0] % 10;
 //        HAL_UART_Transmit_IT(&huart3, buf_485, 20);
 //        HAL_Delay(1000);
@@ -30,9 +30,10 @@ void ADCManager::handleADCConversionComplete(ADC_HandleTypeDef* hadc) {
 
 // Массив структур, которые связывают таймеры и их обработчики
 const TimerManager::TimerMap TimerManager::timerMap[ ] = {
+	{ TIM2,  &TimerManager::handleTIM2  },
 	{ TIM4,  &TimerManager::handleTIM4  },
     { TIM5,  &TimerManager::handleTIM5  },
-    //{ TIM6,  &TimerManager::handleTIM6  },//Убрал так как использую WatchDog
+    { TIM6,  &TimerManager::handleTIM6  },
     //{ TIM7,  &TimerManager::handleTIM7  },
     { TIM9,  &TimerManager::handleTIM9  },
     { TIM10, &TimerManager::handleTIM10 },
@@ -55,6 +56,11 @@ void TimerManager::handleTimerInterrupt(TIM_HandleTypeDef* htim) {
     }
 }
 // Реализация обработчиков
+//---------------------------------------------------------------------
+void TimerManager::handleTIM2() {
+	Button::isEncDone(true);
+}
+
 void TimerManager::handleTIM4() {
 	//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Разрешаем прерывание EXTI15
 
@@ -122,9 +128,9 @@ void TimerManager::handleTIM10() {
     }
 }
 
-//void TimerManager::handleTIM6() {
-//	(Control::ovenTemper >= Heat::tempMax) && (Button::regim1Button(), 0);
-//}
+void TimerManager::handleTIM6() {
+	(Control::ovenTemper >= Heat::tempMax) && (Button::regim1Button(), 0);
+}
 void TimerManager::handleTIM5() {
 	Protection::TIM5_Handler();
 }
@@ -133,15 +139,15 @@ void TimerManager::handleTIM5() {
 //}
 //---------------------EXTIManager-----------------------------
 void EXTIManager::handleEXTIInterrupt(uint16_t GPIO_Pin) {
-	(GPIO_Pin == GPIO_PIN_2 && (handleGPIO2(), true)) ||
+	//(GPIO_Pin == GPIO_PIN_2 && (handleGPIO2(), true)) ||
 	(GPIO_Pin == GPIO_PIN_14 && (handleGPIO14(), true))||
 	(GPIO_Pin == GPIO_PIN_15 && (handleGPIO15(), true));
 }
-void EXTIManager::handleGPIO2() {
-	//__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_2);
-    HAL_NVIC_DisableIRQ(EXTI2_IRQn);
-    Button::isEncDone(true);
-}
+//void EXTIManager::handleGPIO2() {
+//	//__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_2);
+//    HAL_NVIC_DisableIRQ(EXTI2_IRQn);
+//    Button::isEncDone(true);
+//}
 void EXTIManager::handleGPIO14() {
 	Heat::soundPre = Control::readAdc(3) &&
 	                    (Fram::framRD0byte() - Control::ovenTemper < Heat::HysteresisTemp()) &&
@@ -163,6 +169,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     timerManager.handleTimerInterrupt(htim);
+}
+//-----------------------------------------------------------------
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == TIM2) {
+        // Вызываем ваш метод установки флага
+        Button::isEncDone(true);
+    }
 }
 
 void HAL_GPIO_EXTI_Callback(vu16 GPIO_Pin) {

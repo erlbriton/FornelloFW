@@ -36,6 +36,7 @@
 #include "Button.hpp"
 #include "melody_gpio.hpp"
 #include "Protection.hpp"
+#include "Fram.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -221,7 +222,15 @@ GPIOB->BSRR = GPIO_PIN_15 << 16U; //Спикер выкл
 //GPIOC->BSRR = GPIO_PIN_7 << 16U; // HC595 вкл
 //MelodyPlayer::playPodmoskovnye();
 	}
-
+//	Fram::massive_wr[0] = 0;
+//	Fram::massive_wr[1] = 0;
+//	Fram::massive_wr[2] = 0;
+//	Fram::massive_wr[3] = 0;
+//	Fram::massive_wr[4] = 0;
+//	Fram::massive_wr[5] = 0;
+//	Fram::massive_wr[6] = 0;
+//	Fram::massive_wr[7] = 0;
+//		Fram::fram_wr_massive();
 while (1) {
 			uint16_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
