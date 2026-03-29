@@ -76,12 +76,12 @@ void MelodyPlayer::processNextNoteAsync() {
 
         htim5.Instance->SR &= ~0x0001;
         htim6.Instance->SR &= ~0x0001;
-        htim10.Instance->SR &= ~0x0001;
+       // htim10.Instance->SR &= ~0x0001;
 
         // 2. Старт таймеров
         HAL_TIM_Base_Start_IT(&htim5);
         HAL_TIM_Base_Start_IT(&htim6);
-        HAL_TIM_Base_Start(&htim10);
+        //HAL_TIM_Base_Start(&htim10);
 
         // 3. Включение USART
         USART1->CR1 |= USART_CR1_UE;

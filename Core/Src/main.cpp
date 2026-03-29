@@ -115,7 +115,6 @@ int main(void)
   MX_SPI3_Init();
   MX_TIM5_Init();
   MX_TIM6_Init();
-  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Stop_IT(&htim7);
   LL_SPI_Enable(SPI3);

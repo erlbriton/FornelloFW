@@ -122,7 +122,7 @@ void Button::buttonRegimThree() {
     }
     if (!pass3Button) {//Блок инициализации при первом проходе
         vu8 settedMode = Fram::elementFram(1);// Читаем режим из памяти
-        HAL_TIM_Base_Start_IT(&htim4);
+        HAL_TIM_Base_Start_IT(&htim4);//Запускаем таймер времени
         uint8_t tempValue;
         if (settedMode != dry) {//Определяем начальную температуру
             tempValue = FryModeLambda::firstTemp;
@@ -132,18 +132,22 @@ void Button::buttonRegimThree() {
         Fram::elementFram(0, tempValue);
         pass3Button = true;//Помечаем, что первый проход выполнен
     }
-    Fram::elementFram(5, 1); // Включен режим регулирования
-    buf_485[12] = 1; // Включаем точки в часах
+    Fram::elementFram(5, 1); //Включен режим регулирования
+    buf_485[12] = 1; //Включаем точки в часах
     HAL_Delay(50);
     Fram::framRD0byte();
     flagOneButton = false;//Включаем режим 1-го прохода 1-го режима кнопки
   if (Fram::elementFram(1) != 3 && Fram::elementFram(1) != 10) {//Если режим не set  и light
       Heat::ajustHeat595(Fram::elementFram(1));//запускаем нагрев в выбранном режиме
-      buf_485[18] = 0;
+      buf_485[18] = 0;//стираем рамку вокруг часов
       Protection::Stop();//Выключаем проверку тока в тенах
       GPIOB->BSRR = GPIO_PIN_9;
       Protection::protection_is_active = false;
   }
+//  if (buttonRegim == 0) {
+//          // Если мы здесь и режим стал 0, значит виноват framRD0byte или затирание памяти
+//          __BKPT(0); // Остановка дебаггера
+//      }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------
 bool Button::regim1Button(){

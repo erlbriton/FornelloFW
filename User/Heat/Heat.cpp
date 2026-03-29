@@ -21,7 +21,7 @@ void Heat::ajustHeat595(vu8 numberRegimCook) {
 //Определяем номер члена столбца(второй мерности) массива modeTable. То есть включать 1 ТЭН или 2.
 		bool hiLowMode = static_cast<bool>(differenceTemper > HysteresisTemp());
 		dataTransmit = modeTable[numberRegimCook][hiLowMode];//
-		if (!Heat::checkProtectionTriggers(dataTransmit)) {//Если защиты не сработали
+		if(!Heat::checkProtectionTriggers(dataTransmit)){//Если защиты не сработали
 		TransmitToTENs(dataTransmit);//Посылаем на ТЭНЫ
 		}
 		if((Heat::soundPre==false)&&(Fram::elementFram(1)==1)&&((Fram::framRD0byte()-Control::ovenTemper)<= HysteresisTemp())){
@@ -95,7 +95,7 @@ bool Heat::checkProtectionTriggers(vu8 dataTransmit){
 		},
 
 		{
-			[]() { return 1 && 1 && 1; },//Проверка всех включенных тэнов
+			[]() { return false && false && false; },//Проверка всех включенных тэнов
 			[]() { Button::regim1Button();//Включаем 1-й  режим кнопки
 			GPIOA->BSRR |= GPIO_PIN_8 << 16U;//Подаем сигнал о всех трех включенных тэнах на SN74LVC1G97
 			return true; }

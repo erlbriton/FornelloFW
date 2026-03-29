@@ -34,10 +34,7 @@ const TimerManager::TimerMap TimerManager::timerMap[ ] = {
 	{ TIM4,  &TimerManager::handleTIM4  },
     { TIM5,  &TimerManager::handleTIM5  },
     { TIM6,  &TimerManager::handleTIM6  },
-    //{ TIM7,  &TimerManager::handleTIM7  },
     { TIM9,  &TimerManager::handleTIM9  },
-    { TIM10, &TimerManager::handleTIM10 },
-	//{ TIM11, &TimerManager::handleTIM11 },
     { TIM12, &TimerManager::handleTIM12 },
 };
 
@@ -61,12 +58,6 @@ void TimerManager::handleTIM2() {
 	Button::isEncDone(true);
 }
 
-void TimerManager::handleTIM4() {
-	//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);//Разрешаем прерывание EXTI15
-
-
-	//HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);//Запрещаем прерывание EXTI15
-}
 void TimerManager::handleTIM9() {
 //    num = 1 - num;
 //    TIM7->CR1 = TIM7->CR1 + recount[num]; // Пуск/стоп TIM7
@@ -115,7 +106,7 @@ void TimerManager::handleTIM12() {
 //			 SetTimer::secondCounter = 0);
 //}
 
-void TimerManager::handleTIM10() {
+void TimerManager::handleTIM4() {
     // Используем явное присваивание для исключения предупреждений volatile
     SetTimer::totalTime = SetTimer::totalTime + 1; // Общее время нагрева
     SetTimer::secondCounter = SetTimer::secondCounter + 1;
