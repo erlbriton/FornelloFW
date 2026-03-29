@@ -13,15 +13,46 @@
 #include "flashdata.hpp"
 #include "Protection.hpp"
 //--------------------------------------------Сканируем нажатие-------------------------------------
+//uint8_t Button::scanButton() {
+//	vu8 modeCookAveADC = Fram::elementFram(1);//Если не режим Off
+//	    bool isCookingMode = modeCookAveADC != 0;//isCookingMode = true если modeCookAveADC != 0
+//	    bool isButtonPressed = gettingButton == 1 && flagButton == 0;
+//	    bool isButtonReleased = gettingButton == 0 && flagButton == 1;
+//	    if(isCookingMode && isButtonPressed){
+//	    	buttonRegim = buttonRegim + 1;
+//	    }
+//	    if(buttonRegim > 2){
+//	    	buttonRegim = 2;
+//	    }
+//	    if((flagButton || isButtonPressed) && !isButtonReleased){
+//	    	flagButton = 1;
+//	    }
+//	    else {flagButton = 0;}
+//	    return buttonRegim;
+//}
+
 uint8_t Button::scanButton() {
-	vu8 modeCookAveADC = Fram::elementFram(1);
-	    bool isCookingMode = modeCookAveADC != 0;
-	    bool isButtonPressed = gettingButton == 1 && flagButton == 0;
-	    bool isButtonReleased = gettingButton == 0 && flagButton == 1;
-	    buttonRegim += isCookingMode && isButtonPressed;
-	    buttonRegim = (buttonRegim > 2) ? 2 : buttonRegim;
-	    flagButton = (flagButton || isButtonPressed) && !isButtonReleased;
-	    return buttonRegim;
+    // 1. Читаем внешние данные
+    uint8_t modeCookAveADC = Fram::elementFram(1);
+    bool isCookingMode = (modeCookAveADC != 0);
+    // 2. Определяем события (на основе состояния с ПРОШЛОГО прохода)
+    bool isButtonPressed = (gettingButton == 1 && flagButton == 0);
+    bool isButtonReleased = (gettingButton == 0 && flagButton == 1);
+    // 3. Логика счетчика (выполняется только ОДИН раз в момент фиксации нажатия)
+    if (isCookingMode && isButtonPressed) {
+        buttonRegim++;
+    }
+    if (buttonRegim > 2) {
+        buttonRegim = 2;
+    }
+    // 4. ОБНОВЛЯЕМ СОСТОЯНИЕ ФЛАГА ДЛЯ СЛЕДУЮЩЕГО ВЫЗОВА
+    // Это твоя переписанная строка в виде if-else
+    if ((flagButton || isButtonPressed) && !isButtonReleased) {
+        flagButton = 1;
+    } else {
+        flagButton = 0;
+    }
+    return buttonRegim;
 }
 //-----------------------------------------1-й режим-------------------------------------------------
 void Button::buttonRegimOne() {
@@ -58,22 +89,22 @@ isSettedMode && (buttonRegim = 2);//Если режим "light" или  set - т
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
 	vu8 settedMode = Fram::elementFram(1);
-	    if (settedMode == pre) {
+	    if(settedMode == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
-	    } else {
+	    }else{
 	        executeMainRegimLogic();// В противном случае выполняем основную логику режима
 	    }
 }
 bool Button::executeMainRegimLogic() {//Метод второго и следующих проходов
-    if (firstCall) TIM2->CNT = 0;// Первый проход
+    if(firstCall) TIM2->CNT = 0;// Первый проход
     bool isFlagSoundButton = (flagSoundButton[1] != true);//isFlagSoundButton противоположно flagSoundButton[1]
     isFlagSoundButton && (Heat::spOn(), flagSoundButton[1] = 1, flagSoundButton[2] = 0);
-   // !flagSoundButton[1] && (Heat::spOn(), flagSoundButton[1] = 1, flagSoundButton[2] = 0);
     pass3Button = false;
     encCount(); // Устанавливаем время (или не устанавливаем)
     timerCntEncoder = TIM2->CNT;
     buf_485[18] = 1;//Рамка вокруг часов при установки времени приготовления
-    //HAL_UART_Transmit_IT(&huart3, buf_485, 20); // Передаем на дисплей
+    buf_485[0] = 151;
+    buf_485[20] = 151;
     SetTimer::setTime();
     firstCall = false;
     dirTime = (timerCntEncoder != 0);//Задаем направление счета времени

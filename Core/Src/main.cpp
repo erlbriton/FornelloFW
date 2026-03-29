@@ -222,22 +222,13 @@ GPIOB->BSRR = GPIO_PIN_15 << 16U; //Спикер выкл
 //GPIOC->BSRR = GPIO_PIN_7 << 16U; // HC595 вкл
 //MelodyPlayer::playPodmoskovnye();
 	}
-//	Fram::massive_wr[0] = 0;
-//	Fram::massive_wr[1] = 0;
-//	Fram::massive_wr[2] = 0;
-//	Fram::massive_wr[3] = 0;
-//	Fram::massive_wr[4] = 0;
-//	Fram::massive_wr[5] = 0;
-//	Fram::massive_wr[6] = 0;
-//	Fram::massive_wr[7] = 0;
-//		Fram::fram_wr_massive();
 while (1) {
 			uint16_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
 			Fram::elementFram(1, modeCookAveADC);
      		Button::encCount();//Задаем температуру
-			Fram::elementFram(0);
-			if(Fram::elementFram(1) != 0){//Если режим не Off ...
+			Fram::elementFram(0);//Читаем нулевой член  FRAM(Режим)
+			if(Fram::elementFram(1)){//Если режим не Off ...
 				button.scanButton();//... сканируем кнопку и ...
 				button.executeButtonRegim(button.buttonRegim);//...выбираем режим кнопки
 			}
