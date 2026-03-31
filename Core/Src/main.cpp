@@ -143,7 +143,7 @@ int main(void)
 	Button button;
 	Control control;
 	FryModeLambda fryModeLambda;
-	if(fram5rd){
+	if(fram5rd == 0){
 		Control::backInfo();//Восстанавливаем работу
 	}
 	else{

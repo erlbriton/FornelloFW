@@ -51,7 +51,7 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 		{ [ ](FryModeLambda* fryModeLambda) {
 			Heat::spOn();//Звук
 			Heat::all_off(); // Выключаем все тены
-			GPIOA->BSRR |= GPIO_PIN_12 << 16U; // Свет выкл
+			GPIOC->BSRR |= GPIO_PIN_8 << 16U; // Свет выкл
 			buf_485[11] = settedMode;//Off
 		},
 //----------------------------------------------------1 - Pre----------------------------------------------------------------------------

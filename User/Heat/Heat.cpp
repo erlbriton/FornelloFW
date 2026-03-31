@@ -26,7 +26,7 @@ void Heat::ajustHeat595(vu8 numberRegimCook) {
 		}
 		if((Heat::soundPre==false)&&(Fram::elementFram(1)==1)&&((Fram::framRD0byte()-Control::ovenTemper)<= HysteresisTemp())){
 			Heat::soundPre = true;
-			checkAndPlaySound();
+			//checkAndPlaySound();
 		}
 	SetTimer::TimeCook(Button::dirTime);
 }
@@ -35,11 +35,11 @@ void Heat::ajustHeat595(vu8 numberRegimCook) {
 void Heat::TransmitToTENs(vu8 dataTransmit) {
 //Сравниваем свежую посылку(dataMode[0]) с уже включенными выходами HC595,
 //если равны - блокируем вывод Latch HC595. Таким образом включенные ТЭНы остаются без изменения
-	uint8_t difference = dataModeOld - dataTransmit; //Разность между набором включенных выходов и новой  посылкой
-	GPIO_PinState diff = (GPIO_PinState) difference; //true - разность есть, false - разности нет
+//	uint8_t difference = dataModeOld - dataTransmit; //Разность между набором включенных выходов и новой  посылкой
+	GPIO_PinState diff = (GPIO_PinState) 1;//difference; //true - разность есть, false - разности нет
 	LL_SPI_TransmitData8(SPI3, dataTransmit);	//Передаем на тэны через HC595
 	while (!LL_SPI_IsActiveFlag_TXE(SPI3)) { }//Ждем освобождения буфера передачи
-	HAL_GPIO_WritePin(Latch, diff);	//Latch. Если diff = true - передаем посылку, если diff = false - посылка не передастся
+	HAL_GPIO_WritePin(Latch, diff);	//Latch. Если diff = true - передаем посылку, если diff = false - посылка не передаестся
 	HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);	//Latch
 	//------ Включаем или выключаем пламя на дисплее в зависимости от включенных тенов ----------------------------
 	//--------------------------Информацию берем c выходов HC595---------------------------------------------------
@@ -50,8 +50,8 @@ void Heat::TransmitToTENs(vu8 dataTransmit) {
 //	uint8_t rIn = rightIn << 2;          //Читаем...
 //	uint8_t gIn = grillIn << 1;          //...включенные...
 //	uint8_t dIn = downIn  << 0;           //...выходы HC595
-//	uint8_t fIn = dataTransmit &= 0b1000;//Обнуляем посылку в HC595
-//	dataModeOld = rIn + gIn + dIn + fIn;//Старая посылка
+//  uint8_t fIn = dataTransmit &= 0b1000;//Обнуляем посылку в HC595
+//  dataModeOld = rIn + gIn + dIn + fIn;//Старая посылка
 }
 //------------------------Гистерезис температур в зависимости от режима---------------------------------------------------
  vu8 Heat::HysteresisTemp() {

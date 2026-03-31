@@ -45,12 +45,30 @@ private:
     int recount[2] = {1, -1};
     //uint8_t ovenTemper = 0;
 };
-class EXTIManager {// Класс для обработки EXTI
+class EXTIManager {
 public:
-    void handleEXTIInterrupt(vu16 GPIO_Pin);
+    // Точка входа из HAL_GPIO_EXTI_Callback
+    void handleEXTIInterrupt(uint16_t GPIO_Pin);
+
+    // Основной монитор (вызывать в while(1))
+    // Возвращает 0 - ОК, 11-13 - Обрыв, 21-23 - Залипание
+    uint8_t checkHeaters();
+
 private:
-    void handleGPIO2();
-    void handleGPIO14();
-    void handleGPIO15();
+    // Метки времени импульсов (обновляются в прерываниях)
+    // 0: Right, 1: Down, 2: Grl
+    volatile uint32_t lastPulse[3] = {0, 0, 0};
+
+    // Таймеры для накопления 5-секундной задержки
+    uint32_t stuckTimer[3] = {0, 0, 0};
+    uint32_t openTimer[3]  = {0, 0, 0};
+
+    // Внутренние методы обработки конкретных пинов
+    void handleRight();
+    void handleDown();
+    void handleGrl();
+
+    // Вспомогательный метод для получения состояния реле
+    bool getRelayState(uint8_t index);
 };
 #endif /* CALLBACKS_HPP_ */

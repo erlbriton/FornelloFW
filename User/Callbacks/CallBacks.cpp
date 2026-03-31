@@ -128,26 +128,53 @@ void TimerManager::handleTIM5() {
 //void TimerManager::handleTIM11() {
 //	MelodyPlayer::handleTimerInterrupt();
 //}
-//---------------------EXTIManager-----------------------------
+//-------------------------Проверка ТЭНов на обрыв и залипание контактов реле или пробой ключа-----------------
 void EXTIManager::handleEXTIInterrupt(uint16_t GPIO_Pin) {
-	//(GPIO_Pin == GPIO_PIN_2 && (handleGPIO2(), true)) ||
-	(GPIO_Pin == GPIO_PIN_14 && (handleGPIO14(), true))||
-	(GPIO_Pin == GPIO_PIN_15 && (handleGPIO15(), true));
+    switch (GPIO_Pin) {
+        case EXTI_Right_Pin:
+            handleRight();
+            break;
+        case EXTI_Down_Pin:
+            handleDown();
+            break;
+        case EXTI_Grl_Pin:
+            handleGrl();
+            break;
+        default:
+            break;
+    }
 }
-//void EXTIManager::handleGPIO2() {
-//	//__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_2);
-//    HAL_NVIC_DisableIRQ(EXTI2_IRQn);
-//    Button::isEncDone(true);
-//}
-void EXTIManager::handleGPIO14() {
-	Heat::soundPre = Control::readAdc(3) &&
-	                    (Fram::framRD0byte() - Control::ovenTemper < Heat::HysteresisTemp()) &&
-	                    (Fram::framRD0byte() - Control::ovenTemper > 0);
-}
-void EXTIManager::handleGPIO15() {
-	Protection::EXTI_Handler();
-}
+void EXTIManager::handleRight() { lastPulse[0] = HAL_GetTick(); }
+void EXTIManager::handleDown()  { lastPulse[1] = HAL_GetTick(); }
+void EXTIManager::handleGrl()   { lastPulse[2] = HAL_GetTick(); }
 
+uint8_t EXTIManager::checkHeaters() {
+    uint32_t now = HAL_GetTick();
+    const uint32_t timeout = 5000;      // 5 секунд
+    const uint32_t pulseValid = 100;    // 100 мс
+
+    for (uint8_t i = 0; i < 3; i++) {
+        bool hasCurrent = (now - lastPulse[i]) < pulseValid;
+        bool cmdOn = getRelayState(i);
+
+        // ПРОВЕРКА ЗАЛИПАНИЯ (Команды нет, ток есть)
+        if (!cmdOn && hasCurrent) {
+            if (stuckTimer[i] == 0) stuckTimer[i] = now;
+            if ((now - stuckTimer[i]) > timeout) return (21 + i);
+        } else {
+            stuckTimer[i] = 0;
+        }
+
+        // ПРОВЕРКА ОБРЫВА (Команда есть, тока нет)
+        if (cmdOn && !hasCurrent) {
+            if (openTimer[i] == 0) openTimer[i] = now;
+            if ((now - openTimer[i]) > timeout) return (11 + i);
+        } else {
+            openTimer[i] = 0;
+        }
+    }
+    return 0; // Ошибок нет
+}
 
 //---------------------Колбеки-----------------------------
 ADCManager adcManager;
@@ -172,3 +199,4 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 void HAL_GPIO_EXTI_Callback(vu16 GPIO_Pin) {
     extiManager.handleEXTIInterrupt(GPIO_Pin);
 }
+//-------------------------------Конец проверки ТЭНов------------------------------------

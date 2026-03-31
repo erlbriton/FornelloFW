@@ -56,10 +56,8 @@ void MX_GPIO_Init(void)
                           |MR_Pin|Off_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, FCS_Pin|FData_Pin|FCLK_Pin|Led_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ThreeTen_GPIO_Port, ThreeTen_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, FCS_Pin|FData_Pin|FCLK_Pin|ThreeTen_Pin
+                          |Led_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : EXTI_Right_Pin EXTI_Down_Pin EXTI_Grl_Pin */
   GPIO_InitStruct.Pin = EXTI_Right_Pin|EXTI_Down_Pin|EXTI_Grl_Pin;

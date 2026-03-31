@@ -48,10 +48,10 @@ public:
 	static void TransmitToTENs(vu8);
 	static vu8 HysteresisTemp(); //Гистерезис температур в зависимости от режима
 	inline static void all_off(){ //Просто делаем сброс HC595
-		GPIOA->BSRR |= GPIO_PIN_8 << 16U;   //MR Off
+		GPIOC->BSRR |= GPIO_PIN_9 << 16U;   //MR Off
 		GPIOC->BSRR |= GPIO_PIN_6; //Latch on
 		GPIOC->BSRR |= GPIO_PIN_6 << 16U; //Latch off
-		GPIOA->BSRR |= GPIO_PIN_8; //MR On
+		GPIOC->BSRR |= GPIO_PIN_9; //MR On
 	}
 	static void setOutCooler(); //Управление внешним кулером---------------------
 	static void soundMatch(); //Подача звука при предварительном нагреве

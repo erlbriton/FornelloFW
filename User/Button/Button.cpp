@@ -46,7 +46,6 @@ uint8_t Button::scanButton() {
         buttonRegim = 2;
     }
     // 4. ОБНОВЛЯЕМ СОСТОЯНИЕ ФЛАГА ДЛЯ СЛЕДУЮЩЕГО ВЫЗОВА
-    // Это твоя переписанная строка в виде if-else
     if ((flagButton || isButtonPressed) && !isButtonReleased) {
         flagButton = 1;
     } else {
@@ -57,7 +56,7 @@ uint8_t Button::scanButton() {
 //-----------------------------------------1-й режим-------------------------------------------------
 void Button::buttonRegimOne() {
 	if(flagOneButton == false){
-	vu8 settedMode = Fram::elementFram(1);
+	vu8 settedMode = Fram::elementFram(1);//Читаем установленный режим
 	buf_485[12] = 0;//Останавливаем точки в часах
 	//if (flagSoundButton[0] == 0) {
 	    Heat::spOn();           // Подаем звук нажатой кнопки
@@ -67,24 +66,27 @@ void Button::buttonRegimOne() {
 	//}
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 bool isSettedMode = (settedMode == set || settedMode == light);//Если режим  set или light то isSettedMode == true
-isSettedMode && (buttonRegim = 2);//Если режим "light" или  set - то buttonRegim  сразу = 2(время выставлять не нужно)
+ if(isSettedMode){
+	 buttonRegim = 2;
+ }
+//isSettedMode && (buttonRegim = 2);//Если режим "light" или  "set" - то buttonRegim  сразу = 2(время выставлять не нужно)
 	zeroing(); //Обнуляем все необходимые флаги
-	GPIOA->BSRR |= GPIO_PIN_12;//Включаем свет
+	GPIOC->BSRR |= GPIO_PIN_8;//Включаем свет
 	pass3Button = false; //Обнуляем флаг прохода режима 3 кнопки(для режима "PRE")
-	HAL_TIM_Base_Stop_IT(&htim4);
+	HAL_TIM_Base_Stop_IT(&htim4);//Останавливаем часы
 	flagOneButton = true;
 	Fram::elementFram(5, 0);//Снимаем флаг рабочего режима
-	if(!Protection::protection_is_active){
-	    Protection::Start();//Запускаем проверку тока в тенах
-	}
+//	if(!Protection::protection_is_active){
+//	    Protection::Start();//Запускаем проверку тока в тенах
+//	}
 }
-	if (Protection::GetState() == SIGNAL_PRESENT) {//Реле залипло!
-		GPIOC->BSRR = GPIO_PIN_13;//Включить реле выключения автомата
-		HAL_Delay(2000);
-		GPIOC->BSRR = GPIO_PIN_13<< 16U;//Выключить реле выключения автомата
-		GPIOB->BSRR = GPIO_PIN_9 << 16U;
-		GPIOA->BSRR = GPIO_PIN_12;//Свет
-	    }
+//	if (Protection::GetState() == SIGNAL_PRESENT) {//Реле залипло!
+//		GPIOC->BSRR = GPIO_PIN_13;//Включить реле выключения автомата
+//		HAL_Delay(2000);
+//		GPIOC->BSRR = GPIO_PIN_13<< 16U;//Выключить реле выключения автомата
+//		GPIOB->BSRR = GPIO_PIN_9 << 16U;
+//		GPIOA->BSRR = GPIO_PIN_12;//Свет
+//	    }
 }
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
