@@ -149,7 +149,9 @@ void Protection::checkProtrction(){
 	//Теперь проверяем 3 предупреждения и 3 критические ошибки
 	switch (errorCode) {
 	        // --- ОБРЫВЫ (Предупреждения) ---
-	        case 11: case 12: case 13:
+	        case 11:
+
+	        	case 12: case 13:
 	            Display::showWarning("HEATER OPEN", errorCode);
 	            break;
 
