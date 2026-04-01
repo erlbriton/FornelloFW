@@ -12,6 +12,7 @@
 #include "FryMode.hpp"
 #include "Protection.hpp"
 #include <array>
+#include "Protection.hpp"
 
 class ADCManager {// Класс для обработки ADC
 public:
@@ -52,7 +53,7 @@ public:
 
     // Основной монитор (вызывать в while(1))
     // Возвращает 0 - ОК, 11-13 - Обрыв, 21-23 - Залипание
-    uint8_t checkHeaters();
+    vu8 checkHeaters();
 
 private:
     // Метки времени импульсов (обновляются в прерываниях)
@@ -60,8 +61,8 @@ private:
     volatile uint32_t lastPulse[3] = {0, 0, 0};
 
     // Таймеры для накопления 5-секундной задержки
-    uint32_t stuckTimer[3] = {0, 0, 0};
-    uint32_t openTimer[3]  = {0, 0, 0};
+    vu32 stuckTimer[3] = {0, 0, 0};
+    vu32 openTimer[3]  = {0, 0, 0};
 
     // Внутренние методы обработки конкретных пинов
     void handleRight();

@@ -53,6 +53,8 @@ void Heat::TransmitToTENs(vu8 dataTransmit) {
 //  uint8_t fIn = dataTransmit &= 0b1000;//Обнуляем посылку в HC595
 //  dataModeOld = rIn + gIn + dIn + fIn;//Старая посылка
 }
+
+vu8 Heat::getDataTransmit(){return dataTransmit;}//Читаем состояние программной посылки на включение-выключение ТЭНов
 //------------------------Гистерезис температур в зависимости от режима---------------------------------------------------
  vu8 Heat::HysteresisTemp() {
 	 return Fram::elementFram(1) == 1 ? tempPreOver : tempOtherOver;

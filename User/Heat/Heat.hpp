@@ -39,6 +39,7 @@ private:
 };
 	inline static vu8 dataTransmit;
 public:
+	static vu8 getDataTransmit();
 	static inline bool soundPre;//Флаг подачи звука предварительного нагрева
 	static inline vu8 dataMode;	//Ключ для массива пар, который определяет данные для передачи на 595(работае также просто как локальная переменная)
 	static inline uint8_t dataModeOld = 0;//Режим(см. выше) прошлой итерации. Нужен для сравнения с текущим режимом и принятия

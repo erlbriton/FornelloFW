@@ -9,6 +9,7 @@
 #define PROTECTION_PROTECTION_HPP_
 
 #include "stm32f4xx.h"
+#include "CallBacks.hpp"
 
 // --- Константы для Инерционной Логики ---
 
@@ -53,6 +54,10 @@ public:
 
 	public:
 	   volatile inline static  bool protection_is_active;//Флаг вкл-выкл защиты
+//--------------------------------------------------------------------------------
+
+	   static void checkProtrction(void);//Проверка срабатывания защит ТЭНов
+
 
 	virtual ~Protection();
 };

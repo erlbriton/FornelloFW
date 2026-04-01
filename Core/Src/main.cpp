@@ -37,6 +37,8 @@
 #include "melody_gpio.hpp"
 #include "Protection.hpp"
 #include "Fram.hpp"
+#include "Protection.hpp"
+//#include "CallBacks.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -238,6 +240,7 @@ while (1) {
 			if (huart3.gState == HAL_UART_STATE_READY) {
 			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
 			}
+			Protection::checkProtrction();
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */

@@ -10,6 +10,7 @@
 #include "Heat.hpp"
 #include "SetTimer.hpp"
 #include "melody_gpio.hpp"
+#include "Heat.hpp"
 
 //---------------------ADCManager-----------------------------
 void ADCManager::handleADCConversionComplete(ADC_HandleTypeDef* hadc) {
@@ -169,33 +170,56 @@ void EXTIManager::handleRight() { lastPulse[0] = HAL_GetTick(); }
 void EXTIManager::handleDown()  { lastPulse[1] = HAL_GetTick(); }
 void EXTIManager::handleGrl()   { lastPulse[2] = HAL_GetTick(); }
 
-uint8_t EXTIManager::checkHeaters() {
-    uint32_t now = HAL_GetTick();
-    const uint32_t timeout = 5000;      // 5 секунд
-    const uint32_t pulseValid = 100;    // 100 мс
+//-----Главный метод определения критических ошибок и предупреждений---------
 
-    for (uint8_t i = 0; i < 3; i++) {
+vu8 EXTIManager::checkHeaters() {
+    vu32 now = HAL_GetTick();
+    const vu32 timeout = 5000;      // 5 секунд
+    const vu32 pulseValid = 100;    // 100 мс
+
+    // 1. Подготовка данных (используем твои методы)
+    bool cmdOn[3];
+    vu8 relayByte = Heat::getDataTransmit(); //метод получения байта
+
+    // Распределяем биты согласно  схеме:
+    cmdOn[0] = (relayByte & (1 << 0)); // Down на 0-м бите
+    cmdOn[1] = (relayByte & (1 << 1)); // Grl на 1-м бите
+    cmdOn[2] = (relayByte & (1 << 2)); // Right на 2-м бите
+
+    // 2. Единый цикл проверки по всем ТЭНам
+    for (vu8 i = 0; i < 3; i++) {
+        // Проверяем наличие тока (используем твой массив импульсов)
         bool hasCurrent = (now - lastPulse[i]) < pulseValid;
-        bool cmdOn = getRelayState(i);
 
-        // ПРОВЕРКА ЗАЛИПАНИЯ (Команды нет, ток есть)
-        if (!cmdOn && hasCurrent) {
-            if (stuckTimer[i] == 0) stuckTimer[i] = now;
-            if ((now - stuckTimer[i]) > timeout) return (21 + i);
+        // --- ПРОВЕРКА ЗАЛИПАНИЯ ---
+        if (!cmdOn[i] && hasCurrent) {
+            if (stuckTimer[i] == 0) {
+                stuckTimer[i] = now;
+            }
+            if ((now - stuckTimer[i]) > timeout) {
+                return (21 + i); // Возвращаем код критической ошибки
+            }
         } else {
-            stuckTimer[i] = 0;
+            stuckTimer[i] = 0; // Сброс таймера аномалии
         }
 
-        // ПРОВЕРКА ОБРЫВА (Команда есть, тока нет)
-        if (cmdOn && !hasCurrent) {
-            if (openTimer[i] == 0) openTimer[i] = now;
-            if ((now - openTimer[i]) > timeout) return (11 + i);
+        // --- ПРОВЕРКА ОБРЫВА ---
+        if (cmdOn[i] && !hasCurrent) {
+            if (openTimer[i] == 0) {
+                openTimer[i] = now;
+            }
+            if ((now - openTimer[i]) > timeout) {
+                return (11 + i); // Возвращаем код предупреждения
+            }
         } else {
-            openTimer[i] = 0;
+            openTimer[i] = 0; // Сброс таймера аномалии
         }
     }
-    return 0; // Ошибок нет
+
+    // Если прошли весь цикл и не вышли по return выше — ошибок нет
+    return 0;
 }
+
 
 //---------------------Колбеки-----------------------------
 ADCManager adcManager;
@@ -220,4 +244,4 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 void HAL_GPIO_EXTI_Callback(vu16 GPIO_Pin) {
     extiManager.handleEXTIInterrupt(GPIO_Pin);
 }
-//-------------------------------Конец проверки ТЭНов------------------------------------
+

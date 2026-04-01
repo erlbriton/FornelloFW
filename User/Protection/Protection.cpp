@@ -142,5 +142,31 @@ SignalState_t Protection::GetState() {
     return current_state;
 }
 
+EXTIManager eXTIManager;
+void Protection::checkProtrction(){
+	const uint8_t errorCode = eXTIManager.checkHeaters();
+	if (errorCode == 0) return; // Ошибок нет, выходим
+	//Теперь проверяем 3 предупреждения и 3 критические ошибки
+	switch (errorCode) {
+	        // --- ОБРЫВЫ (Предупреждения) ---
+	        case 11: case 12: case 13:
+	            Display::showWarning("HEATER OPEN", errorCode);
+	            break;
+
+	        // --- ЗАЛИПАНИЯ (Критическая авария) ---
+	        case 21: case 22: case 23:
+	            // Немедленная реакция
+	            HAL_GPIO_WritePin(RELEASE_GPIO_Port, RELEASE_Pin, GPIO_PIN_SET);
+	            Display::showFatalError("RELAY STUCK", errorCode);
+	            System::halt(); // Остановка системы
+	            break;
+
+	        default:
+	            // На случай непредусмотренных кодов
+	            break;
+	    }
+}
+
+
 Protection::~Protection() {}
 
