@@ -148,27 +148,35 @@ void Protection::checkProtrction(){
 	if (errorCode == 0) return; // Ошибок нет, выходим
 	//Теперь проверяем 3 предупреждения и 3 критические ошибки
 	switch (errorCode) {
-	        // --- ОБРЫВЫ (Предупреждения) ---
+	        // Группируем все обрывы
 	        case 11:
-
-	        	case 12: case 13:
-	            Display::showWarning("HEATER OPEN", errorCode);
+	        case 12:
+	        case 13:
+	            this->handleOpen(errorCode);
 	            break;
 
-	        // --- ЗАЛИПАНИЯ (Критическая авария) ---
-	        case 21: case 22: case 23:
-	            // Немедленная реакция
-	            HAL_GPIO_WritePin(RELEASE_GPIO_Port, RELEASE_Pin, GPIO_PIN_SET);
-	            Display::showFatalError("RELAY STUCK", errorCode);
-	            System::halt(); // Остановка системы
+	        // Группируем все залипания
+	        case 21:
+	        case 22:
+	        case 23:
+	            this->handleStuck(errorCode);
 	            break;
 
 	        default:
-	            // На случай непредусмотренных кодов
 	            break;
 	    }
+	}
+
+void Protection::handleOpen(const uint8_t errorCode) {
+    // Внутри можно узнать какой ТЭН: 11-Down, 12-Grl, 13-Right
+    // TODO: Алгоритм при обрыве ТЭНа
 }
 
+// Реализация обработки залипания
+void Protection::handleStuck(const uint8_t errorCode) {
+    // Внутри можно узнать какой ТЭН: 21-Down, 22-Grl, 23-Right
+    // TODO: Алгоритм при залипании (Авария)
+}
 
 Protection::~Protection() {}
 

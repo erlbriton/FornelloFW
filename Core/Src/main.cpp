@@ -144,6 +144,7 @@ int main(void)
 	vu8 fram5rd = Fram::elementFram(5); //Читаем из FRAM
 	Button button;
 	Control control;
+	Protection protection;
 	FryModeLambda fryModeLambda;
 	if(fram5rd == 0){
 		Control::backInfo();//Восстанавливаем работу
@@ -222,6 +223,7 @@ GPIOB->BSRR = GPIO_PIN_9;//Led
 GPIOB->BSRR = GPIO_PIN_15 << 16U; //Спикер выкл
 //GPIOC->BSRR = GPIO_PIN_7 << 16U; // HC595 вкл
 //MelodyPlayer::playPodmoskovnye();
+
 	}
 while (1) {
 			uint16_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
@@ -240,7 +242,7 @@ while (1) {
 			if (huart3.gState == HAL_UART_STATE_READY) {
 			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
 			}
-			Protection::checkProtrction();
+			protection.checkProtrction();
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */

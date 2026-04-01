@@ -48,6 +48,10 @@ public:
 	    static volatile SignalState_t current_state;
 	    static volatile uint16_t Pulse_Confirm_Counter;
 	    static volatile uint16_t timeout_tick_counter;
+	    // Обработка любого обрыва (11, 12, 13)
+	    void handleOpen(const uint8_t errorCode);
+	    // Обработка любого залипания (21, 22, 23)
+	    void handleStuck(const uint8_t errorCode);
 
 	    // --- Константа EXTI ---
 	   inline static const uint32_t SIGNAL_EXTI_LINE = EXTI_LINE_15;
@@ -56,7 +60,8 @@ public:
 	   volatile inline static  bool protection_is_active;//Флаг вкл-выкл защиты
 //--------------------------------------------------------------------------------
 
-	   static void checkProtrction(void);//Проверка срабатывания защит ТЭНов
+	   void checkProtrction(void);//Проверка срабатывания защит ТЭНов
+
 
 
 	virtual ~Protection();
