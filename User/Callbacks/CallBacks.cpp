@@ -124,7 +124,7 @@ void TimerManager::handleTIM6() {
 	(Control::ovenTemper >= Heat::tempMax) && (Button::regim1Button(), 0);
 }
 void TimerManager::handleTIM5() {
-	Protection::TIM5_Handler();
+	//Protection::TIM5_Handler();
 }
 //void TimerManager::handleTIM11() {
 //	MelodyPlayer::handleTimerInterrupt();

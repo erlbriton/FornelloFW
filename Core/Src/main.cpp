@@ -140,7 +140,7 @@ int main(void)
 	//GPIOA->BSRR= GPIO_PIN_8 << 16U;	//HC595 выкл
 	//__HAL_DBGMCU_FREEZE_IWDG(); //Останавливаем WatchDog в дебаггере
 	TIM2->CNT = 180;
-	Protection::Init();
+	//Protection::Init();
 	vu8 fram5rd = Fram::elementFram(5); //Читаем из FRAM
 	Button button;
 	Control control;
@@ -242,7 +242,7 @@ while (1) {
 			if (huart3.gState == HAL_UART_STATE_READY) {
 			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
 			}
-			protection.checkProtrction();
+			protection.checkProtection();
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */
