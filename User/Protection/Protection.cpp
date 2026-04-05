@@ -10,9 +10,10 @@
 
 Protection::Protection() {}
 
-EXTIManager eXTIManager;
+//extern EXTIManager eXTIManager;
+EXTIManager extiManager;
 void Protection::checkProtection(){
-	const uint8_t errorCode = eXTIManager.checkHeaters();
+	volatile uint8_t errorCode = extiManager.checkHeaters(Button::scanButton());
 	if (errorCode == 0) return; // Ошибок нет, выходим
 	//Теперь проверяем 3 предупреждения и 3 критические ошибки
 	switch (errorCode) {
@@ -39,11 +40,12 @@ void Protection::handleOpen(const uint8_t errorCode) {
     // Внутри можно узнать какой ТЭН: 11-Down, 12-Grl, 13-Right
     // TODO: Алгоритм при обрыве ТЭНа
 }
-
+volatile uint8_t global_errorCode; // Глобально
 // Реализация обработки залипания
 void Protection::handleStuck(const uint8_t errorCode) {
     // Внутри можно узнать какой ТЭН: 21-Down, 22-Grl, 23-Right
     // TODO: Алгоритм при залипании (Авария)
+	global_errorCode = errorCode; // Это компилятор не удалит
 }
 
 Protection::~Protection() {}

@@ -13,24 +13,6 @@
 #include "flashdata.hpp"
 #include "Protection.hpp"
 //--------------------------------------------Сканируем нажатие-------------------------------------
-//uint8_t Button::scanButton() {
-//	vu8 modeCookAveADC = Fram::elementFram(1);//Если не режим Off
-//	    bool isCookingMode = modeCookAveADC != 0;//isCookingMode = true если modeCookAveADC != 0
-//	    bool isButtonPressed = gettingButton == 1 && flagButton == 0;
-//	    bool isButtonReleased = gettingButton == 0 && flagButton == 1;
-//	    if(isCookingMode && isButtonPressed){
-//	    	buttonRegim = buttonRegim + 1;
-//	    }
-//	    if(buttonRegim > 2){
-//	    	buttonRegim = 2;
-//	    }
-//	    if((flagButton || isButtonPressed) && !isButtonReleased){
-//	    	flagButton = 1;
-//	    }
-//	    else {flagButton = 0;}
-//	    return buttonRegim;
-//}
-
 uint8_t Button::scanButton() {
     // 1. Читаем внешние данные
     uint8_t modeCookAveADC = Fram::elementFram(1);

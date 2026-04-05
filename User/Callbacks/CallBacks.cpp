@@ -151,7 +151,7 @@ void TimerManager::handleTIM5() {
 Индикация: На дисплее отображается сообщение о критической аварии и необходимости вызова мастера.
  */
 //-------------------------Проверка ТЭНов на обрыв и залипание контактов реле или пробой ключа-----------------
-void EXTIManager::handleEXTIInterrupt(uint16_t GPIO_Pin) {
+void EXTIManager::handleEXTIInterrupt(uint16_t GPIO_Pin){
     switch (GPIO_Pin) {
         case EXTI_Right_Pin:
             handleRight();
@@ -166,57 +166,56 @@ void EXTIManager::handleEXTIInterrupt(uint16_t GPIO_Pin) {
             break;
     }
 }
-void EXTIManager::handleRight() { lastPulse[0] = HAL_GetTick(); }
-void EXTIManager::handleDown()  { lastPulse[1] = HAL_GetTick(); }
-void EXTIManager::handleGrl()   { lastPulse[2] = HAL_GetTick(); }
+void EXTIManager::handleDown()  { lastPulse[0] = HAL_GetTick(); }
+void EXTIManager::handleGrl()   { lastPulse[1] = HAL_GetTick(); }
+void EXTIManager::handleRight() { lastPulse[2] = HAL_GetTick(); }
 
 //-----Главный метод определения критических ошибок и предупреждений---------
 
-vu8 EXTIManager::checkHeaters() {
+vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
     vu32 now = HAL_GetTick();
     const vu32 timeout = 5000;      // 5 секунд
     const vu32 pulseValid = 100;    // 100 мс
 
-    // 1. Подготовка данных (используем твои методы)
-    bool cmdOn[3];
-    vu8 relayByte = Heat::getDataTransmit(); //метод получения байта
+    // 1. Подготовка данных о командах
+    bool cmdOn[3] = {false, false, false};
 
-    // Распределяем биты согласно  схеме:
-    cmdOn[0] = (relayByte & (1 << 0)); // Down на 0-м бите
-    cmdOn[1] = (relayByte & (1 << 1)); // Grl на 1-м бите
-    cmdOn[2] = (relayByte & (1 << 2)); // Right на 2-м бите
-
-    // 2. Единый цикл проверки по всем ТЭНам
+    // Если режим 3 — ТЭНы работают согласно программе
+    if (buttonMode == 3) {
+        vu8 relayByte = Heat::getDataTransmit();
+        cmdOn[0] = (relayByte & (1 << 0));//Down
+        cmdOn[1] = (relayByte & (1 << 1)) != 0;//Grl
+        cmdOn[2] = (relayByte & (1 << 2)) != 0;//Right
+    }
+    // Если режим 0 или 1 — команды ВСЕГДА false (ток запрещен)
+    else if (buttonMode == 0 || buttonMode == 1) {
+        // cmdOn уже инициализирован false, ничего не делаем
+    }
+    // 2. Единый цикл проверки
     for (vu8 i = 0; i < 3; i++) {
-        // Проверяем наличие тока (используем твой массив импульсов)
         bool hasCurrent = (now - lastPulse[i]) < pulseValid;
-
-        // --- ПРОВЕРКА ЗАЛИПАНИЯ ---
+        volatile bool debugCmdOn = cmdOn[i];
+        // --- ПРОВЕРКА ЗАЛИПАНИЯ (Ток есть, когда его не должно быть) ---
+        // Сработает и в режиме 3 (если ТЭН выключен программой),
+        // и в режимах 0/1 (так как cmdOn там всегда false).
         if (!cmdOn[i] && hasCurrent) {
-            if (stuckTimer[i] == 0) {
-                stuckTimer[i] = now;
-            }
-            if ((now - stuckTimer[i]) > timeout) {
-                return (21 + i); // Возвращаем код критической ошибки
-            }
+            if (stuckTimer[i] == 0) stuckTimer[i] = now;
+            if ((now - stuckTimer[i]) > timeout) return (21 + i);
         } else {
-            stuckTimer[i] = 0; // Сброс таймера аномалии
+            stuckTimer[i] = 0;
         }
 
-        // --- ПРОВЕРКА ОБРЫВА ---
+        // --- ПРОВЕРКА ОБРЫВА (Тока нет, хотя команда на включение есть) ---
+        // В режимах 0/1 cmdOn = false, поэтому эта проверка никогда не сработает.
+        // Она активна только в режиме 3 для тех ТЭНов, что включены.
         if (cmdOn[i] && !hasCurrent) {
-            if (openTimer[i] == 0) {
-                openTimer[i] = now;
-            }
-            if ((now - openTimer[i]) > timeout) {
-                return (11 + i); // Возвращаем код предупреждения
-            }
+            if (openTimer[i] == 0) openTimer[i] = now;
+            if ((now - openTimer[i]) > timeout) return (11 + i);
         } else {
-            openTimer[i] = 0; // Сброс таймера аномалии
+            openTimer[i] = 0;
         }
     }
 
-    // Если прошли весь цикл и не вышли по return выше — ошибок нет
     return 0;
 }
 
@@ -224,7 +223,8 @@ vu8 EXTIManager::checkHeaters() {
 //---------------------Колбеки-----------------------------
 ADCManager adcManager;
 TimerManager timerManager;
-EXTIManager extiManager;
+extern EXTIManager extiManager;
+//EXTIManager extiManager;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     adcManager.handleADCConversionComplete(hadc);

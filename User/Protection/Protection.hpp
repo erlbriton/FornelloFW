@@ -14,7 +14,7 @@
 class Protection {
 public:
 	Protection();
-	void checkProtection(void);//Проверка срабатывания защит ТЭНов
+	void checkProtection();//Проверка срабатывания защит ТЭНов
 	private:
 	    // Обработка любого обрыва (11, 12, 13)
 	    void handleOpen(const uint8_t errorCode);
