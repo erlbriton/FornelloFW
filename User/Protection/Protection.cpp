@@ -10,7 +10,6 @@
 
 Protection::Protection() {}
 
-//extern EXTIManager eXTIManager;
 EXTIManager extiManager;
 void Protection::checkProtection(){
 	volatile uint8_t errorCode = extiManager.checkHeaters(Button::scanButton());
@@ -35,18 +34,14 @@ void Protection::checkProtection(){
 	            break;
 	    }
 	}
-volatile uint8_t global_errorCode; // Глобально
+volatile uint8_t global_errorCode; //Глобально временно, только для проверки
 void Protection::handleOpen(const uint8_t errorCode) {
-    // Внутри можно узнать какой ТЭН: 11-Down, 12-Grl, 13-Right
-    // TODO: Алгоритм при обрыве ТЭНа
 	global_errorCode = errorCode;
 }
 
 // Реализация обработки залипания
 void Protection::handleStuck(const uint8_t errorCode) {
-    // Внутри можно узнать какой ТЭН: 21-Down, 22-Grl, 23-Right
-    // TODO: Алгоритм при залипании (Авария)
-	global_errorCode = errorCode; // Это компилятор не удалит
+	global_errorCode = errorCode;
 }
 
 Protection::~Protection() {}
