@@ -18,16 +18,16 @@ void Protection::checkProtection(){
 	//Теперь проверяем 3 предупреждения и 3 критические ошибки
 	switch (errorCode) {
 	        // Группируем все обрывы
-	        case 11:
-	        case 12:
-	        case 13:
+	        case 11://Down
+	        case 12://Grill
+	        case 13://Right
 	            this->handleOpen(errorCode);
 	            break;
 
 	        // Группируем все залипания
-	        case 21:
-	        case 22:
-	        case 23:
+	        case 21://Down
+	        case 22://Grill
+	        case 23://Right
 	            this->handleStuck(errorCode);
 	            break;
 
@@ -35,12 +35,13 @@ void Protection::checkProtection(){
 	            break;
 	    }
 	}
-
+volatile uint8_t global_errorCode; // Глобально
 void Protection::handleOpen(const uint8_t errorCode) {
     // Внутри можно узнать какой ТЭН: 11-Down, 12-Grl, 13-Right
     // TODO: Алгоритм при обрыве ТЭНа
+	global_errorCode = errorCode;
 }
-volatile uint8_t global_errorCode; // Глобально
+
 // Реализация обработки залипания
 void Protection::handleStuck(const uint8_t errorCode) {
     // Внутри можно узнать какой ТЭН: 21-Down, 22-Grl, 23-Right

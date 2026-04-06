@@ -181,34 +181,32 @@ vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
     bool cmdOn[3] = {false, false, false};
 
     // Если режим 3 — ТЭНы работают согласно программе
-    if (buttonMode == 3) {
+    if(buttonMode == 2) {
         vu8 relayByte = Heat::getDataTransmit();
         cmdOn[0] = (relayByte & (1 << 0));//Down
         cmdOn[1] = (relayByte & (1 << 1)) != 0;//Grl
         cmdOn[2] = (relayByte & (1 << 2)) != 0;//Right
     }
     // Если режим 0 или 1 — команды ВСЕГДА false (ток запрещен)
-    else if (buttonMode == 0 || buttonMode == 1) {
-        // cmdOn уже инициализирован false, ничего не делаем
-    }
+//    else if (buttonMode == 0 || buttonMode == 1) {
+//        // cmdOn уже инициализирован false, ничего не делаем
+//    }
     // 2. Единый цикл проверки
     for (vu8 i = 0; i < 3; i++) {
         bool hasCurrent = (now - lastPulse[i]) < pulseValid;
-        volatile bool debugCmdOn = cmdOn[i];
         // --- ПРОВЕРКА ЗАЛИПАНИЯ (Ток есть, когда его не должно быть) ---
         // Сработает и в режиме 3 (если ТЭН выключен программой),
         // и в режимах 0/1 (так как cmdOn там всегда false).
-        if (!cmdOn[i] && hasCurrent) {
+        if(!cmdOn[i] && hasCurrent){
             if (stuckTimer[i] == 0) stuckTimer[i] = now;
             if ((now - stuckTimer[i]) > timeout) return (21 + i);
-        } else {
+        }else {
             stuckTimer[i] = 0;
         }
-
         // --- ПРОВЕРКА ОБРЫВА (Тока нет, хотя команда на включение есть) ---
         // В режимах 0/1 cmdOn = false, поэтому эта проверка никогда не сработает.
         // Она активна только в режиме 3 для тех ТЭНов, что включены.
-        if (cmdOn[i] && !hasCurrent) {
+        if(cmdOn[i] && !hasCurrent){
             if (openTimer[i] == 0) openTimer[i] = now;
             if ((now - openTimer[i]) > timeout) return (11 + i);
         } else {
