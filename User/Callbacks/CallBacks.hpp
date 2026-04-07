@@ -54,6 +54,8 @@ public:
     // Основной монитор (вызывать в while(1))
     // Возвращает 0 - ОК, 11-13 - Обрыв, 21-23 - Залипание
     vu8 checkHeaters(vu8);
+    vu8  getRealStatus() ;//Статус ТЭНов(реально включен-выключен)
+
 
 private:
     // Метки времени импульсов (обновляются в прерываниях)
@@ -72,4 +74,5 @@ private:
     // Вспомогательный метод для получения состояния реле
     bool getRelayState(uint8_t index);
 };
+extern EXTIManager extiManager;
 #endif /* CALLBACKS_HPP_ */

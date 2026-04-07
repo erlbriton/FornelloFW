@@ -216,13 +216,22 @@ vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
 
     return 0;
 }
-
-
+//Статус ТЭНов(реально включен или выключен) 001 - включен Down, 010 - включен Grill, 100 - включен Right
+vu8 EXTIManager::getRealStatus() {
+    vu32 now = HAL_GetTick();
+    vu8 status = 0;
+    for (int i = 0; i < 3; i++) {
+        if ((now - lastPulse[i]) < 100) { // 100мс - окно валидности
+            status |= (1 << i); // Устанавливаем бит, если ток есть
+        }
+    }
+    return status;
+}
 //---------------------Колбеки-----------------------------
 ADCManager adcManager;
 TimerManager timerManager;
-extern EXTIManager extiManager;
-//EXTIManager extiManager;
+//extern EXTIManager extiManager;
+
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     adcManager.handleADCConversionComplete(hadc);
