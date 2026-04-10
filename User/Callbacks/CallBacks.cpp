@@ -243,7 +243,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 //-----------------------------------------------------------------
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM2) {
-        // Вызываем ваш метод установки флага
         Button::isEncDone(true);
     }
 }

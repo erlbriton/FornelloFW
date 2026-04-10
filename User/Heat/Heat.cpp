@@ -48,8 +48,8 @@ Heat::TransmitToTENs(vu8 dataTransmit) {
 	vu8 statusTENs = extiManager.getRealStatus();
 
 	buf_485[13] = statusTENs & (1 << 0); //Пламя внизу
-	buf_485[15] = statusTENs & (1 << 1); //Пламя вверху
-	buf_485[14] = statusTENs & (1 << 2); //Пламя сбоку
+	buf_485[15] = !!(statusTENs & (1 << 1)); //Пламя вверху
+	buf_485[14] = !!(statusTENs & (1 << 2)); //Пламя сбоку
 	//HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей
 //	uint8_t rIn = rightIn << 2;          //Читаем...
 //	uint8_t gIn = grillIn << 1;          //...включенные...
