@@ -12,36 +12,36 @@ Protection::Protection() {}
 
 EXTIManager extiManager;
 void Protection::checkProtection(){
-	volatile uint8_t errorCode = extiManager.checkHeaters(Button::scanButton());
-	if (errorCode == 0) return; // Ошибок нет, выходим
+	uint8_t errorCode = extiManager.checkHeaters(Button::scanButton());
+	if (errorCode == 0){
+		buf_485[19] = 0;
+		HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, GPIO_PIN_SET);
+		return; // Ошибок нет, выходим
+	}
 	//Теперь проверяем 3 предупреждения и 3 критические ошибки
 	switch (errorCode) {
 	        // Группируем все обрывы
 	        case 11://Down
 	        case 12://Grill
 	        case 13://Right
-	            this->handleOpen(errorCode);
+	            this->handleError(errorCode, true);
 	            break;
 
 	        // Группируем все залипания
 	        case 21://Down
 	        case 22://Grill
 	        case 23://Right
-	            this->handleStuck(errorCode);
+	            this->handleError(errorCode, false);
 	            break;
 
 	        default:
 	            break;
 	    }
 	}
-volatile uint8_t global_errorCode; //Глобально временно, только для проверки
-void Protection::handleOpen(const uint8_t errorCode) {
-	global_errorCode = errorCode;
-}
-
-// Реализация обработки залипания
-void Protection::handleStuck(const uint8_t errorCode) {
-	global_errorCode = errorCode;
+void Protection::handleError(const uint8_t errorCode, bool isWarning) {
+	buf_485[19] = errorCode;//Передаем в дисплей код ошибки
+	HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, (GPIO_PinState)isWarning);//Включаем расцепитель
+	Button::regim1Button();
 }
 
 Protection::~Protection() {}

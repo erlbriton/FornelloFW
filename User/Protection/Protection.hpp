@@ -10,6 +10,7 @@
 
 #include "stm32f4xx.h"
 #include "CallBacks.hpp"
+#include "Button.hpp"
 
 class Protection {
 public:
@@ -17,9 +18,7 @@ public:
 	void checkProtection();//Проверка срабатывания защит ТЭНов
 	private:
 	    // Обработка любого обрыва (11, 12, 13)
-	    void handleOpen(const uint8_t errorCode);
-	    // Обработка любого залипания (21, 22, 23)
-	    void handleStuck(const uint8_t errorCode);
+	    void handleError(const uint8_t errorCode, bool);
 
 	public:
 	virtual ~Protection();
