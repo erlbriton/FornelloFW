@@ -46,8 +46,11 @@ Heat::TransmitToTENs(vu8 dataTransmit) {
 	HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);	//Latch
 	//------ Включаем или выключаем пламя на дисплее в зависимости от включенных тенов ----------------------------
 	vu8 statusTENs = extiManager.getRealStatus();
-
-	buf_485[13] = statusTENs & (1 << 0); //Пламя внизу
+	 if(status == 7){//Если все 3 ТЭНа включены
+	    buf_485[19] = 24;//Код ошибки
+	    Button::regim1Button();
+	 }
+	buf_485[13] =    statusTENs & (1 << 0); //Пламя внизу
 	buf_485[15] = !!(statusTENs & (1 << 1)); //Пламя вверху
 	buf_485[14] = !!(statusTENs & (1 << 2)); //Пламя сбоку
 	//HAL_UART_Transmit_IT(&huart3, buf_485, 20);//Передаем на дисплей

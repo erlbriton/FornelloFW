@@ -26,7 +26,6 @@ void Protection::checkProtection(){
 	        case 13://Right
 	            this->handleError(errorCode, true);
 	            break;
-
 	        // Группируем все залипания
 	        case 21://Down
 	        case 22://Grill
