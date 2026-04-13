@@ -21,15 +21,15 @@ void Protection::checkProtection(){
 	//Теперь проверяем 3 предупреждения и 3 критические ошибки
 	switch (errorCode) {
 	        // Группируем все обрывы
-	        case 11://Down
-	        case 12://Grill
-	        case 13://Right
+	        case 1://Down
+	        case 2://Grill
+	        case 3://Right
 	            this->handleError(errorCode, true);
 	            break;
 	        // Группируем все залипания
-	        case 21://Down
-	        case 22://Grill
-	        case 23://Right
+	        case 4://Down
+	        case 5://Grill
+	        case 6://Right
 	            this->handleError(errorCode, false);
 	            break;
 
