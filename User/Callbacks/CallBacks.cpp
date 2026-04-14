@@ -199,7 +199,7 @@ vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
         // и в режимах 0/1 (так как cmdOn там всегда false).
         if(!cmdOn[i] && hasCurrent){
             if (stuckTimer[i] == 0) stuckTimer[i] = now;
-            if ((now - stuckTimer[i]) > timeout) return (21 + i);
+            if ((now - stuckTimer[i]) > timeout) return (i + 4);
         }else {
             stuckTimer[i] = 0;
         }
@@ -208,7 +208,7 @@ vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
         // Она активна только в режиме 3 для тех ТЭНов, что включены.
         if(cmdOn[i] && !hasCurrent){
             if (openTimer[i] == 0) openTimer[i] = now;
-            if ((now - openTimer[i]) > timeout) return (11 + i);
+            if ((now - openTimer[i]) > timeout) return (i + 1);
         } else {
             openTimer[i] = 0;
         }

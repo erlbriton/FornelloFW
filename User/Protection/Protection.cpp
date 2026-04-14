@@ -40,7 +40,9 @@ void Protection::checkProtection(){
 void Protection::handleError(const uint8_t errorCode, bool isWarning) {
 	buf_485[19] = errorCode;//Передаем в дисплей код ошибки
 	HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, (GPIO_PinState)isWarning);//Включаем расцепитель
+	if(errorCode > 3){
 	Button::regim1Button();
+	}
 }
 
 Protection::~Protection() {}
