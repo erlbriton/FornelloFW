@@ -63,8 +63,8 @@ private:
     volatile uint32_t lastPulse[3] = {0, 0, 0};
 
     // Таймеры для накопления 5-секундной задержки
-    vu32 stuckTimer[3] = {0, 0, 0};
-    vu32 openTimer[3]  = {0, 0, 0};
+    volatile vu32 stuckTimer[3] = {0, 0, 0};
+    volatile vu32 openTimer[3]  = {0, 0, 0};
 
     // Внутренние методы обработки конкретных пинов
     void handleRight();
