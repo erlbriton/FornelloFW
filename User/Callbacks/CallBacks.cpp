@@ -221,8 +221,8 @@ vu8 EXTIManager::getRealStatus() {
     vu32 now = HAL_GetTick();
     vu8 status = 0;
     for (int i = 0; i < 3; i++) {
-        if ((now - lastPulse[i]) < 100) { // 100мс - окно валидности
-            status |= (1 << i); // Устанавливаем бит, если ток есть
+    if ((now - lastPulse[i]) < 100) { // 100мс - окно валидности
+        status |= (1 << i); // Устанавливаем бит, если ток есть
         }
     }
     return status;

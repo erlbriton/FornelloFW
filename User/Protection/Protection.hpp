@@ -17,8 +17,9 @@ public:
 	Protection();
 	void checkProtection();//Проверка срабатывания защит ТЭНов
 	private:
-	    // Обработка любого обрыва (11, 12, 13)
+	    // Обработка любого обрыва (1, 2, 3)
 	    void handleError(const uint8_t errorCode, bool);
+	    uint32_t tripleTenTimer = 0;
 
 	public:
 	virtual ~Protection();

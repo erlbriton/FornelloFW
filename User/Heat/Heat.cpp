@@ -46,10 +46,10 @@ Heat::TransmitToTENs(vu8 dataTransmit) {
 	HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);	//Latch
 	//------ Включаем или выключаем пламя на дисплее в зависимости от включенных тенов ----------------------------
 	vu8 statusTENs = extiManager.getRealStatus();
-	 if(statusTENs == 7){//Если все 3 ТЭНа включены
-	    buf_485[19] = 7;//Код ошибки
-	    Button::regim1Button();
-	 }
+//	 if(statusTENs == 7){//Если все 3 ТЭНа включены
+//	    buf_485[19] = 7;//Код ошибки
+//	    Button::regim1Button();
+//	 }
 	buf_485[13] =    statusTENs & (1 << 0); //Пламя внизу
 	buf_485[15] = !!(statusTENs & (1 << 1)); //Пламя вверху
 	buf_485[14] = !!(statusTENs & (1 << 2)); //Пламя сбоку
@@ -105,8 +105,8 @@ bool Heat::checkProtectionTriggers(vu8 dataTransmit) {
 		[&]() { dataTransmit &= 0b1000; TransmitToTENs(dataTransmit); return true; } },
 
 		// 3. Проверка всех включенных тэнов
-		{ []() { return false && false && false; },
-		[]()  { Button::regim1Button(); GPIOA->BSRR |= GPIO_PIN_8 << 16U; return true; } },
+//		{ []() { return false && false && false; },
+//		[]()  { Button::regim1Button(); GPIOA->BSRR |= GPIO_PIN_8 << 16U; return true; } },
 
 		// 4. Проверка прошедшего времени при 70 < t <= 120 град (12 часов)
 		{ []() { return (Fram::framRD0byte() > 70 && Fram::framRD0byte() <= 120) && SetTimer::totalTime > maxTotalTime; },
