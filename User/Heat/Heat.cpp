@@ -12,7 +12,7 @@
 #include "SetTimer.hpp"
 #include "melody_gpio.hpp"
 
-#define safeTemperature 90
+#define safeTemperature 90//Температура включения внешнего кулера
 
 //------------------------------Главный метод--------------------------------------------------
 void
@@ -61,22 +61,25 @@ Heat::TransmitToTENs(vu8 dataTransmit) {
 //  dataModeOld = rIn + gIn + dIn + fIn;//Старая посылка
 }
 
-vu8
-Heat::getDataTransmit() {
+
+vu8 Heat::getDataTransmit() {
 	return dataTransmit;
 }	//Читаем состояние программной посылки на включение-выключение ТЭНов
 //------------------------Гистерезис температур в зависимости от режима---------------------------------------------------
-vu8
-Heat::HysteresisTemp() {
-	return Fram::elementFram(1) == 1 ? tempPreOver : tempOtherOver;
+
+vu8 Heat::HysteresisTemp() {
+	if (Fram::elementFram(1) == 1) {
+	        return tempPreOver;
+	    }
+	    return tempOtherOver;
 }
 //--------------------------------Управление внешним кулером---------------------
-void
-Heat::setOutCooler() {
-	GPIOA->BSRR = (Control::ovenTemper > safeTemperature && Fram::elementFram(1) != 3) ?
-	GPIO_PIN_11               // включить кулер
-			:
-			GPIO_PIN_11 << 16U;       // выключить кулер
+void Heat::setOutCooler() {//    константа        если режим не "set"
+    if (Control::ovenTemper > safeTemperature && Fram::elementFram(1) != 3) {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);    // кулер ON
+    } else {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);  // кулер OFF
+    }
 }
 //--------------------------------Подача звука при предварительном нагреве-----------
 //void Heat::soundMatch() {
