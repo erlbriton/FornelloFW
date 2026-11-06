@@ -1,115 +1,81 @@
 #include "melody_gpio.hpp"
-#include "main.h"
 
-extern TIM_HandleTypeDef htim12;
-extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim1;
+extern DMA_HandleTypeDef hdma_tim1_up;
 
-uint32_t MelodyPlayer::noteTimeout = 0;
-uint16_t MelodyPlayer::currentNoteIdx = 0;
-static bool isPlaying = false;
+// Компилируем мелодию на этапе сборки
+static constexpr auto DmaMelody = MelodyPlayer::compileMelody(MelodyLibrary::PodmoskovnyeVechera);
 
-// Оставляем ваши ноты
-#define NOTE_RE   294
-#define NOTE_MI   330
-#define NOTE_FA   349
-#define NOTE_SOL  392
-#define NOTE_LA   440
-#define NOTE_CS   277 // До-диез (C#)
+bool MelodyPlayer::playing = false;
 
-void MelodyPlayer::setFrequency(uint16_t frequency) {
-    if (frequency == 0) {
-        __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, 0);
-        HAL_TIM_PWM_Stop(&htim12, TIM_CHANNEL_2);
-        return;
+void MelodyPlayer::init() {
+    // 1. Устанавливаем предделитель: 168 МГц / 168 = 1 МГц (1 тик = 1 мкс)
+    __HAL_TIM_SET_PRESCALER(&htim1, 167);
+
+    // 2. Настройка Burst-режима DMA
+    // DBA = 0x0B (смещение регистра ARR)
+    // DBL = 1 (2 трансфера по 32 бита: ARR+RCR и CCR1+CCR2)
+    TIM1->DCR = (0x0B << TIM_DCR_DBA_Pos) | (1 << TIM_DCR_DBL_Pos);
+
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0); // Тишина при старте
+}
+
+void MelodyPlayer::play() {
+    if (playing) return;
+    playing = true;
+
+    __HAL_TIM_SET_COUNTER(&htim1, 0);
+
+    // 1. Вручную загружаем ПЕРВУЮ ноту, чтобы звук пошел мгновенно
+    __HAL_TIM_SET_AUTORELOAD(&htim1, DmaMelody.data[0].arr);
+    htim1.Instance->RCR = DmaMelody.data[0].rcr; // RCR пишем напрямую
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, DmaMelody.data[0].ccr);
+
+    // 2. Запускаем DMA, начиная СО ВТОРОЙ ноты (data[1])
+    // Передаем (количество нот - 1) * 2 слов
+    HAL_DMA_Start_IT(&hdma_tim1_up,
+                     (uint32_t)&DmaMelody.data[1], // Адрес второй ноты
+                     (uint32_t)&TIM1->DMAR,
+                     (DmaMelody.count - 1) * 2);   // Количество оставшихся слов
+
+    // 3. Разрешаем таймеру дергать DMA
+    __HAL_TIM_ENABLE_DMA(&htim1, TIM_DMA_UPDATE);
+
+    // 4. Включаем ШИМ
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+}
+
+void MelodyPlayer::stop() {
+    __HAL_TIM_DISABLE_DMA(&htim1, TIM_DMA_UPDATE);
+    HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+    HAL_DMA_Abort_IT(&hdma_tim1_up);
+    playing = false;
+}
+
+bool MelodyPlayer::isPlaying() {
+    return playing;
+}
+
+void MelodyPlayer::onDmaComplete() {
+    stop();
+
+    // --- ЗДЕСЬ ВАШ КОД ИЗ СТАРОГО ФАЙЛА (таймеры 5/6, USART, HC595) ---
+    /*
+    htim5.Instance->SR &= ~0x0001;
+    htim6.Instance->SR &= ~0x0001;
+    HAL_TIM_Base_Start_IT(&htim5);
+    HAL_TIM_Base_Start_IT(&htim6);
+
+    USART1->CR1 |= USART_CR1_UE;
+    USART1->SR &= ~0x003F;
+    (void)USART1->DR;
+    GPIOC->BSRR = GPIO_PIN_7 << 16U;
+    */
+}
+
+extern "C" void HAL_DMA_XferCpltCallback(DMA_HandleTypeDef *hdma) {
+    // Проверьте в CubeMX, что для TIM1_UP выделен именно DMA2 Stream 5
+    if (hdma->Instance == DMA2_Stream5) {
+        MelodyPlayer::onDmaComplete();
     }
-
-    // УМЕНЬШАЕМ базу, чтобы ПОВЫСИТЬ тон.
-    // Попробуем 200 000 (в 10 раз меньше, чем когда звук был просто "низким")
-    uint32_t timer_base_freq = 2000000;
-
-    // Если 2 000 000 был низким, а 10 000 000 стал ЕЩЕ ниже,
-    // попробуем пойти вниз: 500 000
-    uint32_t target_base = 500000;
-
-    uint32_t period = target_base / frequency;
-
-    if (period < 2) period = 2;
-    if (period > 65535) period = 65535;
-
-    __HAL_TIM_SET_AUTORELOAD(&htim12, (uint32_t)(period - 1));
-    __HAL_TIM_SET_COMPARE(&htim12, TIM_CHANNEL_2, (uint32_t)(period / 2));
-
-    HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_2);
-}
-
-void MelodyPlayer::playPodmoskovnye() {
-	if (isPlaying) return; // Если уже играет, не перезапускаем
-
-	    currentNoteIdx = 0;
-	    noteTimeout = 0;
-	    isPlaying = true;
-
-	    // Включаем таймер и его прерывания
-	    HAL_TIM_Base_Start_IT(&htim7);
-}
-
-void MelodyPlayer::processNextNoteAsync() {
-    // 2. Ждем окончания длительности текущей ноты
-    if (HAL_GetTick() < noteTimeout) return;
-
-    static const uint16_t tempo = 400;
-
-    static const Note song[] = {
-        {NOTE_RE,  tempo}, {NOTE_FA,  tempo}, {NOTE_LA,  tempo}, {NOTE_FA,  tempo},
-        {NOTE_SOL, tempo}, {NOTE_SOL, tempo}, {NOTE_FA,  tempo}, {NOTE_MI,  tempo},
-        {NOTE_LA,  tempo}, {NOTE_LA,  tempo}, {NOTE_SOL, tempo}, {NOTE_SOL, tempo},
-        {NOTE_RE,  tempo}, {NOTE_RE,  tempo}, {NOTE_RE,  tempo}, {NOTE_RE,  1}
-    };
-
-    // 3. Проверяем, не закончились ли ноты (16 нот в массиве)
-    if (currentNoteIdx >= 16) {
-        setFrequency(0);      // Выключаем звук
-        isPlaying = false;    // Сбрасываем флаг состояния
-
-        // ОСТАНАВЛИВАЕМ прерывания таймера TIM7
-        HAL_TIM_Base_Stop_IT(&htim7);
-
-        htim5.Instance->SR &= ~0x0001;
-        htim6.Instance->SR &= ~0x0001;
-       // htim10.Instance->SR &= ~0x0001;
-
-        // 2. Старт таймеров
-        HAL_TIM_Base_Start_IT(&htim5);
-        HAL_TIM_Base_Start_IT(&htim6);
-        //HAL_TIM_Base_Start(&htim10);
-
-        // 3. Включение USART
-        USART1->CR1 |= USART_CR1_UE;
-        USART2->CR1 |= USART_CR1_UE;
-        USART3->CR1 |= USART_CR1_UE;
-
-        // 4. Очистка USART (добавь это сейчас)
-        USART1->SR &= ~0x003F; // Сброс всех флагов ошибок (PE, FE, NE, ORE, IDLE)
-        USART2->SR &= ~0x003F;
-        USART3->SR &= ~0x003F;
-        (void)USART1->DR;       // Чтение данных для сброса флага RXNE
-        (void)USART2->DR;
-        (void)USART3->DR;
-        GPIOC->BSRR = GPIO_PIN_7 << 16U; // HC595 вкл
-
-        return;
-    }
-
-    // 4. Играем текущую ноту
-    setFrequency(song[currentNoteIdx].frequency);
-
-    // 5. Устанавливаем время, когда нужно будет переключиться на следующую ноту
-    noteTimeout = HAL_GetTick() + song[currentNoteIdx].duration;
-
-    // 6. Переходим к следующему индексу
-    currentNoteIdx++;
-}
-
-extern "C" void TIM7_Music_Handler(void) {
-    MelodyPlayer::processNextNoteAsync();
 }

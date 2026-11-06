@@ -214,18 +214,34 @@ int main(void)
 //HAL_TIM_Base_Start_IT(&htim7);
 HAL_Delay(500);
 //HAL_TIM_Base_Stop_IT(&htim7);
-GPIOA->BSRR = GPIO_PIN_8 << 16U; //Спикер выкл
+//GPIOA->BSRR = GPIO_PIN_8 << 16U; //Спикер выкл
 //Button button;
 //Control control;
 //FryModeLambda fryModeLambda;
 //MelodyPlayer::playPodmoskovnye();
-EXTI->IMR &= ~EXTI_IMR_MR15;//Запрещаем прерывание EXTI15
-GPIOB->BSRR = GPIO_PIN_9;//Led
-GPIOB->BSRR = GPIO_PIN_15 << 16U; //Спикер выкл
+//EXTI->IMR &= ~EXTI_IMR_MR15;//Запрещаем прерывание EXTI15
+//GPIOB->BSRR = GPIO_PIN_9;//Led
+//GPIOB->BSRR = GPIO_PIN_15 << 16U; //Спикер выкл
 //GPIOC->BSRR = GPIO_PIN_7 << 16U; // HC595 вкл
 //MelodyPlayer::playPodmoskovnye();
-
+GPIOB->BSRR = GPIO_PIN_9;//Led
+//GPIOA->BSRR = GPIO_PIN_8 << 16U; //Спикер выкл
 	}
+
+
+
+	MelodyPlayer::init();
+	if (!MelodyPlayer::isPlaying()) {
+	    MelodyPlayer::play();
+	}
+
+	//htim1.Instance->PSC = 167;   // 1 МГц
+	//htim1.Instance->ARR = 999;   // Период 1000 (частота 1 кГц)
+	//htim1.Instance->CCR1 = 500;  // Скважность 50%
+
+	// Запускаем
+	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
 while (1) {
 			uint16_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
@@ -243,7 +259,7 @@ while (1) {
 			if (huart3.gState == HAL_UART_STATE_READY) {
 			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
 			}
-			protection.checkProtection();
+			//protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */
