@@ -55,14 +55,20 @@ vu16 Control::readAdc(uint8_t numSamples) {
 }
 //---------------------------Восстановление информации после сброса или отключения------------------------
 void Control::backInfo() {
-	Fram::fram_rd_massive(); //Читаем сохраненную информацию
-	vu8 temperFornoBack;// = TIM2->CNT = Fram::elementFram(0); //Восстанавливаем заданную температуру
-	vu8 val = Fram::elementFram(0);
-	TIM2->CNT = val;
-	temperFornoBack = val;
-	vu8 modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
-	Button::dirTime = Fram::elementFram(4); //Направление счета времени
-	SetTimer::minCounterDec = (Fram::elementFram(6) << 8) | Fram::elementFram(7);//Соединяем старший и младший байты счетчика минут
+	//Fram::fram_rd_massive(); //Читаем сохраненную информацию
+	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+	//vu8 temperFornoBack;// = TIM2->CNT = Fram::elementFram(0); //Восстанавливаем заданную температуру
+	//vu8 val = Fram::elementFram(0);
+	//TIM2->CNT = val;
+	//uint8_t temperFornoBack = framRd[0];
+	TIM2->CNT = framRd[0];
+	//temperFornoBack = val;
+	//vu8 modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
+	vu8 modeBack = framRd[1]; //Восстанавливаем номер режима приготовления
+	//Button::dirTime = Fram::elementFram(4); //Направление счета времени
+	Button::dirTime = framRd[4]; //Направление счета времени
+	//SetTimer::minCounterDec = (Fram::elementFram(6) << 8) | Fram::elementFram(7);//Соединяем старший и младший байты счетчика минут
+	SetTimer::minCounterDec = (framRd[6] << 8) | framRd[7];//Соединяем старший и младший байты счетчика минут
 	SetTimer::minCounterInc = SetTimer::minCounterDec;//Счетчик инкремента и декремента времени здесь равны
 	buf_485[0] = buf_485[18] = 151; //Проверочный код посылки
 //#################################Для калибровки###################################################
@@ -71,9 +77,12 @@ void Control::backInfo() {
 //	buf_485[3] = framRdWr.massive_rd[3] % 10; //Единицы часов
 //	buf_485[4] = framRdWr.massive_rd[3] / 10; //Десятки часов
 //#################################Для калибровки###################################################
-	buf_485[8] = temperFornoBack % 100 % 10; //Единицы...
-	buf_485[9] = temperFornoBack % 100 / 10; //...десятки ........
-	buf_485[10] = temperFornoBack / 100; //...сотни заданной температуры
+	//buf_485[8] = temperFornoBack % 100 % 10; //Единицы...
+	buf_485[8] = framRd[0] % 100 % 10; //Единицы...
+	//buf_485[9] = temperFornoBack % 100 / 10; //...десятки ........
+	buf_485[9] = framRd[0] % 100 / 10; //...десятки ........
+	//buf_485[10] = temperFornoBack / 100; //...сотни заданной температуры
+	buf_485[10] = framRd[0] / 100; //...сотни заданной температуры
 	buf_485[11] = modeBack; //Режим приготовления
 	Button::setButtonRegim(2);//Восстанавливаем 3-й режим кнопки
 	SetTimer::number_Iterator_Decrement = true;//Восстанавливаем второй проход инкремента времени

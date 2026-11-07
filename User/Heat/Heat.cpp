@@ -14,6 +14,7 @@
 
 #define safeTemperature 90//Температура включения внешнего кулера
 
+
 //------------------------------Главный метод--------------------------------------------------
 void
 Heat::ajustHeat595(vu8 numberRegimCook) {
@@ -25,7 +26,7 @@ Heat::ajustHeat595(vu8 numberRegimCook) {
 	if (!Heat::checkProtectionTriggers(dataTransmit)) { //Если защиты не сработали
 		TransmitToTENs(dataTransmit); //Посылаем на ТЭНЫ
 	}
-	if ((Heat::soundPre == false) && (Fram::elementFram(1) == 1) && ((Fram::framRD0byte() - Control::ovenTemper) <= HysteresisTemp())) {
+	if ((!Heat::soundPre) && (Fram::elementFram(1) == 1) && ((Fram::framRD0byte() - Control::ovenTemper) <= HysteresisTemp())) {
 		Heat::soundPre = true;
 		//checkAndPlaySound();
 	}

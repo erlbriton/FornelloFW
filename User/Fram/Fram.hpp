@@ -26,6 +26,9 @@
 #include "main.h"
 #include "flashdata.hpp"
 
+#include <array>
+#include <cstdint>
+
 // команды для работы с FRAM
 #define FREAD 0x03      //Read Status Register 0 - 255
 #define FWRITE 0x02     //Write Status Register
@@ -118,19 +121,34 @@ public:
 		Fram_CS_off;
 		for (i = delay; i; i--) {}
 }
-	static void Fram_sio_inOut(vu8 inOut){
-		GPIO_InitTypeDef GPIO_InitStruct;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-		if (inOut == 0) {
-			GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD; //На выход открытый коллектор
-		} else {
-			GPIO_InitStruct.Mode = GPIO_MODE_INPUT; //На вход
-		}
-		//ноги на фрам память,            FRAM_sio менять на ходу
-		GPIO_InitStruct.Pin = Fram_SIO;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+//	static void Fram_sio_inOut(vu8 inOut){
+//		GPIO_InitTypeDef GPIO_InitStruct;
+//		GPIO_InitStruct.Pull = GPIO_NOPULL;
+//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+//		if (inOut == 0) {
+//			GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD; //На выход открытый коллектор
+//		} else {
+//			GPIO_InitStruct.Mode = GPIO_MODE_INPUT; //На вход
+//		}
+//		//ноги на фрам память,            FRAM_sio менять на ходу
+//		GPIO_InitStruct.Pin = Fram_SIO;
+//		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+//	}
+//-------------------------------------------------------------------------------------------------------
+	static void Fram_sio_inOut(bool inOut){
+		        GPIO_InitTypeDef GPIO_InitStruct;
+				GPIO_InitStruct.Pull = GPIO_NOPULL;
+				GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+				if (!inOut) {
+					GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD; //На выход открытый коллектор
+				} else {
+					GPIO_InitStruct.Mode = GPIO_MODE_INPUT; //На вход
+				}
+				//ноги на фрам память,            FRAM_sio менять на ходу
+				GPIO_InitStruct.Pin = Fram_SIO;
+				HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
+//-------------------------------------------------------------------------------------------------------
 	static vu8 elementFram(vu8 index) { //Читаем
 		fram_rd_massive();
 		return massive_rd[index];
@@ -160,23 +178,53 @@ public:
 		  Fram_CS_Up();
 		  return true;
 		}
-	static vu8 fram_rd_massive() {//Чтение в массив из фрам
-		vu8 i = 0;
-		Fram_CS_Down();
-		for (i = delay; i; i--) {}
-		 framByte(FREAD);
-		framByte(0);
-	  for(i=delay;i;i--) {}
-	  for(i=delay;i;i--) {}
-	  Fram_sio_inOut(1);//ногу порта на вход настроили
-	  for(i=delay;i;i--){}
-	  for(i=0;i<8;i++){//читаем массив данных
-	    massive_rd[i] = framByte();}
-	  for(i=delay;i;i--){}
-	  Fram_CS_Up();
-	 Fram_sio_inOut(0);//ногу порта на выход настроили
-	  return massive_rd[i];
+
+//	static vu8 fram_rd_massive() {//Чтение в массив из фрам
+//		vu8 i = 0;
+//		Fram_CS_Down();
+//		for (i = delay; i; i--) {}
+//		 framByte(FREAD);
+//		framByte(0);
+//	  for(i=delay;i;i--) {}
+//	  for(i=delay;i;i--) {}
+//	  Fram_sio_inOut(true);//ногу порта на вход настроили
+//	  for(i=delay;i;i--){}
+//	  for(i=0;i<8;i++){//читаем массив данных
+//	    massive_rd[i] = framByte();}
+//	  for(i=delay;i;i--){}
+//	  Fram_CS_Up();
+//	 Fram_sio_inOut(false);//ногу порта на выход настроили
+//	  return massive_rd[i];
+//	}
+
+	static  std::array<uint8_t, 8> fram_rd_massive() {
+	    std::array<uint8_t, 8> buffer{}; // Инициализируем нулями (защита от мусора)
+	    uint8_t i = 0;
+
+	    Fram_CS_Down();
+	    for (i = delay; i; i--) {}
+
+	    framByte(FREAD);
+	    framByte(0);
+
+	    for(i = delay; i; i--) {}
+	    for(i = delay; i; i--) {}
+
+	    Fram_sio_inOut(true); // ногу порта на вход настроили
+	    for(i = delay; i; i--) {}
+
+	    for(i = 0; i < 8; i++) { // читаем массив данных
+	        buffer[i] = framByte();
+	    }
+
+	    for(i = delay; i; i--) {}
+
+	    Fram_CS_Up();
+	    Fram_sio_inOut(false); // ногу порта на выход настроили
+
+	    return buffer; // Возвращаем весь массив целиком
 	}
+
 	static vu8 framRD0byte() {//Чтение нулевого байта из фрам
 		vu8 byte0Fram;
 		vu8 i = 0;
@@ -186,11 +234,11 @@ public:
 		 framByte(0);
 		for (i = delay; i; i--) {}
 		for (i = delay; i; i--) {}
-		Fram_sio_inOut(1);  //ногу порта на вход настроили
+		Fram_sio_inOut(true);  //ногу порта на вход настроили
 		byte0Fram = framByte(); //читаем нулевой байт данных
 		for (i = delay; i; i--) {}
 		 Fram_CS_Up();
-		 Fram_sio_inOut(0); //ногу порта на выход настроили
+		 Fram_sio_inOut(false); //ногу порта на выход настроили
 		return byte0Fram;
 	}
 };

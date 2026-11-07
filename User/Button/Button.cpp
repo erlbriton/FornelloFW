@@ -12,11 +12,12 @@
 #include "SetTimer.hpp"
 #include "flashdata.hpp"
 #include "Protection.hpp"
+#include "Fram.hpp"
 //--------------------------------------------Сканируем нажатие-------------------------------------
 uint8_t Button::scanButton() {
     // 1. Читаем внешние данные
-    uint8_t modeCookAveADC = Fram::elementFram(1);
-    bool isCookingMode = (modeCookAveADC != 0);
+	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+    bool isCookingMode = (framRd[1] !=0);// Проверяем, что режим не 0
     // 2. Определяем события (на основе состояния с ПРОШЛОГО прохода)
     bool isButtonPressed = (gettingButton == 1 && flagButton == 0);
     bool isButtonReleased = (gettingButton == 0 && flagButton == 1);
@@ -192,7 +193,7 @@ vu8 Button::encCount() {
         if (encMemory != cntEncoder && encDone == true) {
             encMemory = cntEncoder;        // Запоминаем новое значение
             Fram::elementFram(0, cntEncoder); // Сохраняем во внутренний массив
-            Fram::fram_rd_massive();       // Читаем массив обратно
+           // Fram::fram_rd_massive();       // Читаем массив обратно
             // Если мы не в режиме настройки "Set", обновляем данные для дисплея
             if (settedMode != set) {
                 byte0Fram = Fram::framRD0byte();
