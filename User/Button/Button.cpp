@@ -73,8 +73,9 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 }
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
-	vu8 settedMode = Fram::elementFram(1);
-	    if(settedMode == pre) {
+	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+	//vu8 settedMode = Fram::elementFram(1);
+	    if(framRd[1] == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
 	    }else{
 	        executeMainRegimLogic();// В противном случае выполняем основную логику режима
