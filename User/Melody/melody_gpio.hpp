@@ -22,10 +22,11 @@ public:
     static bool isPlaying();
     static void onDmaComplete();
 
-    template<size_t N>///////////////////////////////////////////////////////////////////////////////////////
+    template<size_t N>
     static constexpr auto compileMelody(const std::array<MelodyLibrary::Note, N>& melody) {
         struct Result {
-            std::array<DmaNote, N * 4 + 4> data; // +4 ячейки про запас
+            // Размер с запасом для всех нот и пауз
+            std::array<DmaNote, N * 4 + 4> data;
             size_t count;
         };
         Result res{};
@@ -38,25 +39,26 @@ public:
 
         for (size_t i = 0; i < N; ++i) {
             uint16_t freq = melody[i].frequency;
-            if (freq == 0) freq = 1000;
+            if (freq == 0) freq = 1000; // Если пауза, ставим 1 кГц для таймера
 
             uint32_t arr = (TICK_FREQ / freq) - 1;
             if (arr > 65535) arr = 65535;
+
+            // Если частота 0 (пауза), то скважность 0 (звук выключен)
             uint16_t ccr = (melody[i].frequency == 0) ? 0 : static_cast<uint16_t>(arr * DUTY_CYCLE);
 
             uint32_t scaledDuration = static_cast<uint32_t>(melody[i].duration * TEMPO_SCALE * ARTICULATION);
             uint32_t totalPeriods = (scaledDuration * freq) / 1000;
             if (totalPeriods == 0) totalPeriods = 1;
 
-            while (totalPeriods > 0 && dmaIndex < (N * 4)) {
+            while (totalPeriods > 0 && dmaIndex < (N * 4 + 4)) {
                 uint16_t rcr = (totalPeriods > 256) ? 255 : (totalPeriods - 1);
                 res.data[dmaIndex++] = { static_cast<uint16_t>(arr), rcr, ccr, 0 };
                 totalPeriods -= (rcr + 1);
             }
         }
 
-        // 🎯 ДОБАВЛЯЕМ ФИНАЛЬНУЮ НОТУ ТИШИНЫ (защита от гудения)
-        // 1000 Гц (ARR=999), RCR=255 (длинная), CCR=0 (тишина)
+        // Финальная нота тишины (защита от гудения)
         res.data[dmaIndex++] = { 999, 9, 0, 0 };
 
         res.count = dmaIndex;
