@@ -25,15 +25,15 @@ private:
 	static inline uint32_t adcRaw = 0; //Сырые данные ADC задатчика режима
 
 public:
-	inline static vu16 ovenTemper = 0;
-	inline static vu32 adcTemp[2] = {0, };
-	static vu32 bakeTemper();
-	static vu8 readAdc(vu8); //Читаем задатчик режима
+	inline static uint16_t ovenTemper = 0;
+	inline static uint32_t adcTemp[2] = {0, };
+	static uint32_t bakeTemper();
+	static uint8_t readAdc(uint8_t); //Читаем задатчик режима
 	static void backInfo(void);
 	bool isEncDone() const;//Геттер EncDone
 	void isEncDone(bool newEncDone);//Сеттер EncDone
 private:
-	static constexpr std::array<vu8, 4096> rawADC = {
+	static constexpr std::array<uint8_t, 4096> rawADC = {
 			    BOOST_PP_REPEAT(239, REPEAT, 1)
 			    BOOST_PP_REPEAT(250, REPEAT, 2)
 				BOOST_PP_REPEAT(250, REPEAT, 2)

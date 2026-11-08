@@ -9,13 +9,13 @@
 #include "Heat.hpp"
 #include "Fram.hpp"
 
-void FryModeLambda::modeCom(vu16 averageAdc, vu8 tempFirstMode) {//Метод, запускаемый при переключении режима
+void FryModeLambda::modeCom(uint16_t averageAdc, uint8_t tempFirstMode) {//Метод, запускаемый при переключении режима
 	firstRegim(tempFirstMode);//Устанавливаем первоначальный режим
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);//Запускаем энкодер в работу
 	buf_485[11] =  Fram::framRdOneAddress(Fram::TARGET_MODE);//Номер режима
 }
 //-----------------------------------Начальный режим---------------------------------------
-void FryModeLambda::firstRegim(vu8 tempFirst) {
+void FryModeLambda::firstRegim(uint8_t tempFirst) {
 	Heat::spOn();//Писк
 	Button::flagOneButton = false;//Флаг первого режима кнопки
 	TIM2->CNT = 0;
@@ -40,7 +40,7 @@ void FryModeLambda::firstRegim(vu8 tempFirst) {
 	Heat::soundPre = false;
 }
 //--------------------------/Записываем номер включенного режима---------------------------------------------
-void FryModeLambda::modeWrite(vu8 modeCookAveADC) {
+void FryModeLambda::modeWrite(uint8_t modeCookAveADC) {
 	settedMode = Fram::framRdOneAddress(Fram::TARGET_MODE);
 	buf_485[0] = 151;
 	buf_485[20] = 151;
@@ -89,18 +89,18 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 			HAL_TIM_Base_Stop_IT(&htim4);
 		} };
 //--------------------------- Метод для вызова лямбда-функции по индексу----------------------------------
-vu8 FryModeLambda::ModeSetLambda(vu8 modeCookNew) {
+uint8_t FryModeLambda::ModeSetLambda(uint8_t modeCookNew) {
 	if (modeCookNew == modeCookOld && modeCookNew != 3) return modeCookNew; /* Ранний выход, если ничего не изменилось и
     повтор и если режим "Set" иначе температура платы будет измеряться только один раз при включении режима*/
-	static constexpr vu8 modeMapping[11] = {0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 5};//Массив лямбд режимов приготовления
-	vu8 indexSet = (modeCookNew < 11) ? modeMapping[modeCookNew] : 0;//Выбираем лямбду соответствующую режиму
+	static constexpr uint8_t modeMapping[11] = {0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 5};//Массив лямбд режимов приготовления
+	uint8_t indexSet = (modeCookNew < 11) ? modeMapping[modeCookNew] : 0;//Выбираем лямбду соответствующую режиму
 	buf_485[11] = modeCookNew;
 	ModeSetLambda(modeCookLambdaArray[indexSet], modeCookNew); // Передаем лямбду по индексу
 	modeCookOld = modeCookNew;
 	return modeCookNew;//Номер режима приготовления
 }
 //Вызываем лямбду, переданную как параметр
-void FryModeLambda::ModeSetLambda(std::function<void(FryModeLambda*)> lambda, vu8 modeCookNew) {
+void FryModeLambda::ModeSetLambda(std::function<void(FryModeLambda*)> lambda, uint8_t modeCookNew) {
 	lambda(this); // Передаем указатель на текущий объект
 	modeWrite(modeCookNew);
 }

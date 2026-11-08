@@ -39,7 +39,7 @@ uint8_t Button::scanButton() {
 //-----------------------------------------1-й режим-------------------------------------------------
 void Button::buttonRegimOne() {
 	if(flagOneButton == false){
-	vu8 settedMode = Fram::elementFram(1);//Читаем установленный режим
+	uint8_t settedMode = Fram::elementFram(1);//Читаем установленный режим
 	buf_485[12] = 0;//Останавливаем точки в часах
 	//if (flagSoundButton[0] == 0) {
 	    Heat::spOn();           // Подаем звук нажатой кнопки
@@ -74,7 +74,7 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
 	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-	//vu8 settedMode = Fram::elementFram(1);
+	//uint8_t settedMode = Fram::elementFram(1);
 	    if(Fram::framRdOneAddress(Fram::TARGET_MODE) == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
 	    }else{
@@ -107,7 +107,7 @@ void Button::buttonRegimThree() {
         flagSoundButton[0] = 0; // Сбрасываем флаг поданного сигнала 1-го режима кнопки
     }
     if (!pass3Button) {//Блок инициализации при первом проходе
-        vu8 settedMode = Fram::elementFram(1);// Читаем режим из памяти
+        uint8_t settedMode = Fram::elementFram(1);// Читаем режим из памяти
         HAL_TIM_Base_Start_IT(&htim4);//Запускаем таймер времени
         uint8_t tempValue;
         if (settedMode != dry) {//Определяем начальную температуру
@@ -145,7 +145,7 @@ const std::array<std::function<void(Button*)>, 3> Button::arrButtonRegim = {
     [ ](Button* btn) { btn->buttonRegimThree(); }
 };
 //-------------------------------------Выбор режима кнопки-------------------------------------------
-bool Button::executeButtonRegim(vu8 index)  {
+bool Button::executeButtonRegim(uint8_t index)  {
     if (index >= 0 && index < arrButtonRegim.size()) {
         arrButtonRegim[index](this); //Передаём `this` в лямбду
     }
@@ -169,7 +169,7 @@ void Button::zeroing() {
 	SetTimer::minCounterDec = 0;
 	SetTimer::totalTime = 0;//Общее время нагрева
 	//soundPre = false; //Сбрасываем флаг поданного звука  ДОДЕЛАТЬ
-	//vu8 isSettedMode = Fram::elementFram(1);
+	//uint8_t isSettedMode = Fram::elementFram(1);
 	//--------------------Выводим в дисплей-------------------------------------------
 //#################################Для калибровки###################################################
 //	buf_485[1] = 0; ////Единицы минут
@@ -184,9 +184,9 @@ void Button::zeroing() {
 	buf_485[15] = 0; //Стираем огонь
 }
 //-------------------------------------------Задаем температуру-----------------
-vu8 Button::encCount() {
-    vu8 settedMode = Fram::elementFram(1); // Читаем установленный режим из Fram
-    vu8 byte0Fram = 0;
+uint8_t Button::encCount() {
+    uint8_t settedMode = Fram::elementFram(1); // Читаем установленный режим из Fram
+    uint8_t byte0Fram = 0;
     // Главное условие: работаем, если режим не равен 1
     if (buttonRegim != 1) {
         cntEncoder = TIM2->CNT; // Считываем текущее значение счетчика таймера
@@ -212,7 +212,7 @@ vu8 Button::encCount() {
 void Button::isEncDone(bool newEncDone){//Сеттер EncDone
 	encDone = newEncDone;
  }
-bool Button::setButtonRegim(vu8 newButtonRegim){//Сеттер buttonRegim
+bool Button::setButtonRegim(uint8_t newButtonRegim){//Сеттер buttonRegim
 	buttonRegim = newButtonRegim;
 	return true;
 }

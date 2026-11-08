@@ -16,7 +16,7 @@
    74 - 1.29  om - 3423
    150- 1.542 om - 3106
    201- 1.749 om - 2875*/
-vu32 Control::bakeTemper() {//Измеряем температуру в духовке
+uint32_t Control::bakeTemper() {//Измеряем температуру в духовке
 	tempADC = adcTemp[0];
 	tVref = adcTemp[1];
 	kVref = ((float) VREF / (float) tVref);
@@ -32,21 +32,21 @@ vu32 Control::bakeTemper() {//Измеряем температуру в дух�
 	return ovenTemper;
 }
 //Измеряем АЦП канала "РЕЖИМ" 3 раза или сколько нужно раз(одного явно мало)
-vu8 Control::readAdc(uint8_t numSamples) {
-    vu32 sum = 0;
-    for (vu8 i = 0; i < numSamples; i++) {
+uint8_t Control::readAdc(uint8_t numSamples) {
+    uint32_t sum = 0;
+    for (uint8_t i = 0; i < numSamples; i++) {
     	HAL_ADC_Start(&hadc2);
         ADC2->CR2 |= ADC_CR2_SWSTART; // Запуск преобразования АЦП
-        vu32 startTime = HAL_GetTick();// Ожидание завершения преобразования с таймаутом
+        uint32_t startTime = HAL_GetTick();// Ожидание завершения преобразования с таймаутом
         while (!(ADC2->SR & ADC_SR_EOC)) {
             if ((HAL_GetTick() - startTime) > 10) { // 10 мс таймаут
                 return 0; // Ошибка
             }
         }
-        vu16 adcRaw = ADC2->DR; // Чтение результата преобразования
+        uint16_t adcRaw = ADC2->DR; // Чтение результата преобразования
         sum += adcRaw; // Суммирование результатов
     }
-    vu16 averageAdc = sum / numSamples; // Вычисление среднего значения
+    uint16_t averageAdc = sum / numSamples; // Вычисление среднего значения
     if (averageAdc >= sizeof(rawADC) / sizeof(rawADC[0])) {// Проверяем, не выходим ли за границы массива rawADC
         return 0; // Ошибка
     }
@@ -57,15 +57,15 @@ vu8 Control::readAdc(uint8_t numSamples) {
 void Control::backInfo() {
 	//Fram::fram_rd_massive(); //Читаем сохраненную информацию
 	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-	//vu8 temperFornoBack;// = TIM2->CNT = Fram::elementFram(0); //Восстанавливаем заданную температуру
-	//vu8 val = Fram::elementFram(0);
+	//uint8_t temperFornoBack;// = TIM2->CNT = Fram::elementFram(0); //Восстанавливаем заданную температуру
+	//uint8_t val = Fram::elementFram(0);
 	//TIM2->CNT = val;
 	//uint8_t temperFornoBack = framRd[0];
-	vu8 targetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);
+	uint8_t targetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);
 	TIM2->CNT = targetTemp;//Fram::framRdOneAddress(Fram::TARGET_TEMP);
 	//temperFornoBack = val;
-	//vu8 modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
-	vu8 modeBack = Fram::framRdOneAddress(Fram::TARGET_MODE); //Восстанавливаем номер режима приготовления
+	//uint8_t modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
+	uint8_t modeBack = Fram::framRdOneAddress(Fram::TARGET_MODE); //Восстанавливаем номер режима приготовления
 	//Button::dirTime = Fram::elementFram(4); //Направление счета времени
 	Button::dirTime = Fram::framRdOneAddress(Fram::DIRECTION_TIME); //Направление счета времени
 	//SetTimer::minCounterDec = (Fram::elementFram(6) << 8) | Fram::elementFram(7);//Соединяем старший и младший байты счетчика минут

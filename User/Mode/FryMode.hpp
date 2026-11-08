@@ -26,16 +26,16 @@
 class FryModeLambda {
 public:
   inline static uint8_t modeCookOld = 0; //Для Запоминания номера режима, чтобы не повторятся каждую итерацию, кроме set,
-  inline static vu8 settedMode = 0;
+  inline static uint8_t settedMode = 0;
   	//иначе температура платы будет измеряться только один раз при включении режима.
   void modeCom(uint16_t, uint8_t);
-  	void firstRegim(vu8);
-  	void modeWrite(vu8);//Записываем номер включенного режима
+  	void firstRegim(uint8_t);
+  	void modeWrite(uint8_t);//Записываем номер включенного режима
   	static const uint16_t firstTemp = 180;	//начальная температура кроме сушки
   	static const uint16_t firstTempDry = 70;//начальная температура для сушки(dry)
   //-----------------------------------------Новый метод-----------------------------------------------//
-	vu8 ModeSetLambda(uint8_t index); // Метод для вызова лямбда-функции по индексу
-	void ModeSetLambda(std::function<void(FryModeLambda*)> lambda, vu8);// Метод для вызова лямбда-функции, переданной как параметр
+	uint8_t ModeSetLambda(uint8_t index); // Метод для вызова лямбда-функции по индексу
+	void ModeSetLambda(std::function<void(FryModeLambda*)> lambda, uint8_t);// Метод для вызова лямбда-функции, переданной как параметр
 
 private:
 	static const std::array<std::function<void(FryModeLambda*)>, 6> modeCookLambdaArray;// Массив лямбда-функций

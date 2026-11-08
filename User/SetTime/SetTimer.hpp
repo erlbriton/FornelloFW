@@ -20,17 +20,17 @@ private:
 public:
 	inline static bool number_Iterator_Increment = false;
 	inline static bool number_Iterator_Decrement = false;
-	inline static vu32 totalTime = 0;//Общее время. Для контроля максимального времени нагрева
-	inline static vu32 secondCounter = 0;//Секундный счетчик
-	inline static vu32 minCounterInc = 0;//Инкрементный счетчик минут
-	inline static vu32 minCounterDec = 0;//Декрементный счетчик минут
-	inline static vu32 hours = 0;
-	inline static vu32 minutes = 0;
-	static inline vu32 hoursSet = 0; //Установленные часы
-	static inline vu32 minutesSet = 0; //Установленные минуты
-	static inline vu32 memTime = 0; //Запоминаем время, выставленное энкодером
+	inline static uint32_t totalTime = 0;//Общее время. Для контроля максимального времени нагрева
+	inline static uint32_t secondCounter = 0;//Секундный счетчик
+	inline static uint32_t minCounterInc = 0;//Инкрементный счетчик минут
+	inline static uint32_t minCounterDec = 0;//Декрементный счетчик минут
+	inline static uint32_t hours = 0;
+	inline static uint32_t minutes = 0;
+	static inline uint32_t hoursSet = 0; //Установленные часы
+	static inline uint32_t minutesSet = 0; //Установленные минуты
+	static inline uint32_t memTime = 0; //Запоминаем время, выставленное энкодером
 
-	static vu16 setTime() {//Задаем время приготовления
+	static uint16_t setTime() {//Задаем время приготовления
 		hoursSet = TIM2->CNT / 60;     //Часы
 		minutesSet = TIM2->CNT % 60;     //минуты
 		buf_485[0] = 151;

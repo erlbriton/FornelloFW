@@ -17,9 +17,9 @@
 
 //------------------------------Главный метод--------------------------------------------------
 void
-Heat::ajustHeat595(vu8 numberRegimCook) {
+Heat::ajustHeat595(uint8_t numberRegimCook) {
 	Button::encCount(); //Установка температуры в режиме приготовления
-	vu8 differenceTemper = Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper; //Разность между установленной и текущей температурой
+	uint8_t differenceTemper = Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper; //Разность между установленной и текущей температурой
 //Определяем номер члена столбца(второй мерности) массива modeTable. То есть включать 1 ТЭН или 2.
 	bool hiLowMode = static_cast<bool>(differenceTemper > HysteresisTemp());
 	dataTransmit = modeTable[numberRegimCook][hiLowMode]; //
@@ -35,7 +35,7 @@ Heat::ajustHeat595(vu8 numberRegimCook) {
 
 //----------------------------Передаем на ТЭНЫ через SPI и HC595---------------------------
 
-void Heat::TransmitToTENs(vu8 dataTransmit) {
+void Heat::TransmitToTENs(uint8_t dataTransmit) {
 ////Сравниваем свежую посылку(dataMode[0]) с уже включенными выходами HC595,
 ////если равны - блокируем вывод Latch HC595. Таким образом включенные ТЭНы остаются без изменения
 ////	uint8_t difference = dataModeOld - dataTransmit; //Разность между набором включенных выходов и новой  посылкой
@@ -45,7 +45,7 @@ void Heat::TransmitToTENs(vu8 dataTransmit) {
 //	HAL_GPIO_WritePin(Latch, diff);	//Latch. Если diff = true - передаем посылку, если diff = false - посылка не передаестся
 //	HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);	//Latch
 //	//------ Включаем или выключаем пламя на дисплее в зависимости от включенных тенов ----------------------------
-//	vu8 statusTENs = extiManager.getRealStatus();
+//	uint8_t statusTENs = extiManager.getRealStatus();
 ////	 if(statusTENs == 7){//Если все 3 ТЭНа включены
 ////	    buf_485[19] = 7;//Код ошибки
 ////	    Button::regim1Button();
@@ -86,12 +86,12 @@ void Heat::TransmitToTENs(vu8 dataTransmit) {
 }
 
 
-vu8 Heat::getDataTransmit() {
+uint8_t Heat::getDataTransmit() {
 	return dataTransmit;
 }	//Читаем состояние программной посылки на включение-выключение ТЭНов
 //------------------------Гистерезис температур в зависимости от режима-----------
 
-vu8 Heat::HysteresisTemp() {
+uint8_t Heat::HysteresisTemp() {
 	if (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) {
 	        return tempPreOver;
 	    }

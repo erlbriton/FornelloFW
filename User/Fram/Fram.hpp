@@ -73,8 +73,8 @@
 
 class Fram {
 	public://private:
-	inline static vu8 massive_wr[8];//Массив для записи во FRAM память
-	inline static vu8 massive_rd[8];//Массив для считывания из FRAM памяти
+	inline static uint8_t massive_wr[8];//Массив для записи во FRAM память
+	inline static uint8_t massive_rd[8];//Массив для считывания из FRAM памяти
 public:
 	// ---------------Flash  память--------------------------------------------------------
 	    static constexpr uint8_t TARGET_TEMP           = 0;
@@ -87,7 +87,7 @@ public:
 		static constexpr uint8_t L_BYTE_MINUTS_COUNTER = 7;
 
 	 //------------------------------------Tактирование одного бита------------------------------
-	static void fram_pulse(vu8 Delay) {
+	static void fram_pulse(uint8_t Delay) {
 		uint8_t i;
 		for (i = Delay; i; i--) {}
 		Fram_SCK_on; //on
@@ -96,14 +96,14 @@ public:
 		for (i = Delay; i; i--) {}
 	}
 	//-------------------Передача одного байта, данные в функцию отправляются сразу-----------------------------
-	static void framByte(vu8 Data_byt) {
+	static void framByte(uint8_t Data_byt) {
 	    for (uint8_t mask = 0x80; mask != 0; mask >>= 1) {
 	        (Data_byt & mask) ? Fram_SIO_on : Fram_SIO_off;
 	        fram_pulse(delay_sck);
 	    }
 	}
 	 //------------------Чтение одного байта----------------
-	static vu8 framByte(void) {
+	static uint8_t framByte(void) {
 	    uint8_t Data = 0;
 	    for (uint8_t mask = 0x80; mask != 0; mask >>= 1) {
 	        if (Fram_SIO_IN) Data |= mask;
@@ -131,19 +131,6 @@ public:
 		Fram_CS_off;
 		for (i = delay; i; i--) {}
 }
-//	static void Fram_sio_inOut(vu8 inOut){
-//		GPIO_InitTypeDef GPIO_InitStruct;
-//		GPIO_InitStruct.Pull = GPIO_NOPULL;
-//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-//		if (inOut == 0) {
-//			GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD; //На выход открытый коллектор
-//		} else {
-//			GPIO_InitStruct.Mode = GPIO_MODE_INPUT; //На вход
-//		}
-//		//ноги на фрам память,            FRAM_sio менять на ходу
-//		GPIO_InitStruct.Pin = Fram_SIO;
-//		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-//	}
 //-------------------------------------------------------------------------------------------------------
 	static void Fram_sio_inOut(bool inOut){
 		        GPIO_InitTypeDef GPIO_InitStruct;
@@ -159,11 +146,11 @@ public:
 				HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 //-------------------------------------------------------------------------------------------------------
-	static vu8 elementFram(vu8 index) { //Читаем
+	static uint8_t elementFram(uint8_t index) { //Читаем
 		fram_rd_massive();
 		return massive_rd[index];
 	}
-	static bool elementFram(vu8 index, vu8 value){//Записываем в один адрес
+	static bool elementFram(uint8_t index, uint8_t value){//Записываем в один адрес
 		massive_wr[index] = value;
 		fram_wr_massive();
 		return true;
@@ -188,24 +175,6 @@ public:
 		  Fram_CS_Up();
 		  return true;
 		}
-
-//	static vu8 fram_rd_massive() {//Чтение в массив из фрам
-//		vu8 i = 0;
-//		Fram_CS_Down();
-//		for (i = delay; i; i--) {}
-//		 framByte(FREAD);
-//		framByte(0);
-//	  for(i=delay;i;i--) {}
-//	  for(i=delay;i;i--) {}
-//	  Fram_sio_inOut(true);//ногу порта на вход настроили
-//	  for(i=delay;i;i--){}
-//	  for(i=0;i<8;i++){//читаем массив данных
-//	    massive_rd[i] = framByte();}
-//	  for(i=delay;i;i--){}
-//	  Fram_CS_Up();
-//	 Fram_sio_inOut(false);//ногу порта на выход настроили
-//	  return massive_rd[i];
-//	}
 
 	static  std::array<uint8_t, 8> fram_rd_massive() {
 	    std::array<uint8_t, 8> buffer{}; // Инициализируем нулями (защита от мусора)
@@ -255,9 +224,9 @@ public:
 	    return byteFram; // Возвращаем прочитанный байт
 	}
 
-	static vu8 framRD0byte() {//Чтение нулевого байта из фрам
-		vu8 byte0Fram;
-		vu8 i = 0;
+	static uint8_t framRD0byte() {//Чтение нулевого байта из фрам
+		uint8_t byte0Fram;
+		uint8_t i = 0;
 		 Fram_CS_Down();
 		for (i = delay; i; i--) {}
 		 framByte(FREAD);

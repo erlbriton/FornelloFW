@@ -172,17 +172,17 @@ void EXTIManager::handleRight() { lastPulse[2] = HAL_GetTick(); }
 
 //-----Главный метод определения критических ошибок и предупреждений---------
 
-vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
-    vu32 now = HAL_GetTick();
-    const vu32 timeout = 5000;      // 5 секунд
-    const vu32 pulseValid = 100;    // 100 мс
+uint8_t EXTIManager::checkHeaters(uint8_t buttonMode) {
+    uint32_t now = HAL_GetTick();
+    const uint32_t timeout = 5000;      // 5 секунд
+    const uint32_t pulseValid = 100;    // 100 мс
 
     // 1. Подготовка данных о командах
     bool cmdOn[3] = {false, false, false};
 
     // Если режим 3 — ТЭНы работают согласно программе
     if(buttonMode == 2) {
-        vu8 relayByte = Heat::getDataTransmit();
+        uint8_t relayByte = Heat::getDataTransmit();
         cmdOn[0] = (relayByte & (1 << 0));//Down
         cmdOn[1] = (relayByte & (1 << 1)) != 0;//Grl
         cmdOn[2] = (relayByte & (1 << 2)) != 0;//Right
@@ -192,7 +192,7 @@ vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
 //        // cmdOn уже инициализирован false, ничего не делаем
 //    }
     // 2. Единый цикл проверки
-    for (vu8 i = 0; i < 3; i++) {
+    for (uint8_t i = 0; i < 3; i++) {
         bool hasCurrent = (now - lastPulse[i]) < pulseValid;
         // --- ПРОВЕРКА ЗАЛИПАНИЯ (Ток есть, когда его не должно быть) ---
         // Сработает и в режиме 3 (если ТЭН выключен программой),
@@ -217,9 +217,9 @@ vu8 EXTIManager::checkHeaters(vu8 buttonMode) {
     return 0;
 }
 //Статус ТЭНов(реально включен или выключен) 001 - включен Down, 010 - включен Grill, 100 - включен Right
-vu8 EXTIManager::getRealStatus() {
-    vu32 now = HAL_GetTick();
-    vu8 status = 0;
+uint8_t EXTIManager::getRealStatus() {
+    uint32_t now = HAL_GetTick();
+    uint8_t status = 0;
     for (int i = 0; i < 3; i++) {
     if ((now - lastPulse[i]) < 100) { // 100мс - окно валидности
         status |= (1 << i); // Устанавливаем бит, если ток есть
@@ -247,7 +247,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
     }
 }
 
-void HAL_GPIO_EXTI_Callback(vu16 GPIO_Pin) {
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     extiManager.handleEXTIInterrupt(GPIO_Pin);
 }
 

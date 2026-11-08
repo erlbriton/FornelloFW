@@ -36,7 +36,7 @@ void plateTemp()
       DS18B20_InitializationCommand(&temperatureSensor);
       DS18B20_SkipRom(&temperatureSensor);
       DS18B20_ReadScratchpad(&temperatureSensor);
-      vu8 tempPlate = temperatureSensor.temperature * 0.77777;
+      uint8_t tempPlate = temperatureSensor.temperature * 0.77777;
       buf_485[0] = buf_485[20] = 151;
 	  buf_485[8] = tempPlate % 10;//Единицы
 	  buf_485[9] = tempPlate / 10;//Десятки

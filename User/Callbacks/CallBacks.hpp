@@ -42,7 +42,7 @@ private:
     static const TimerMap timerMap[ ];
 
     bool num = 0;
-    vu8 numSound = 0;
+    uint8_t numSound = 0;
     int recount[2] = {1, -1};
     //uint8_t ovenTemper = 0;
 };
@@ -53,8 +53,8 @@ public:
 
     // Основной монитор (вызывать в while(1))
     // Возвращает 0 - ОК, 11-13 - Обрыв, 21-23 - Залипание
-    vu8 checkHeaters(vu8);
-    vu8  getRealStatus() ;//Статус ТЭНов(реально включен-выключен)
+    uint8_t checkHeaters(uint8_t);
+    uint8_t  getRealStatus() ;//Статус ТЭНов(реально включен-выключен)
 
 
 private:
@@ -63,8 +63,8 @@ private:
     volatile uint32_t lastPulse[3] = {0, 0, 0};
 
     // Таймеры для накопления 5-секундной задержки
-    volatile vu32 stuckTimer[3] = {0, 0, 0};
-    volatile vu32 openTimer[3]  = {0, 0, 0};
+    volatile uint32_t stuckTimer[3] = {0, 0, 0};
+    volatile uint32_t openTimer[3]  = {0, 0, 0};
 
     // Внутренние методы обработки конкретных пинов
     void handleRight();
