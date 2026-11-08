@@ -214,23 +214,36 @@ GPIOB->BSRR = GPIO_PIN_9;//Led
 	}
 
 while (1) {
-			uint16_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
+			uint8_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
+			static uint8_t oldModeCookAveADC = 0xFFFF;
+			if (modeCookAveADC != oldModeCookAveADC) {
 			Fram::elementFram(Fram::TARGET_MODE, modeCookAveADC);
+			oldModeCookAveADC = modeCookAveADC;// Обновляем "память" для следующего цикла
+			}
      		Button::encCount();//Задаем температуру
      		if(Fram::framRdOneAddress(Fram::TARGET_MODE)){//Если режим не Off ...
 				button.scanButton();//... сканируем кнопку и ...
 				button.executeButtonRegim(button.buttonRegim);//...выбираем режим кнопки
 			}
 			Heat::setOutCooler(); //Вкл-выкл. внешнего кулера
+			protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов
 			buf_485[11] = modeCookAveADC;
 			buf_485[0] = 151;
 			buf_485[20] = 151;
-			if (huart3.gState == HAL_UART_STATE_READY) {
-			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
+			// 🎯 НЕБЛОКИРУЮЩАЯ ЗАДЕРЖКА ДЛЯ ДИСПЛЕЯ
+			static uint32_t lastDisplayTime = 0; // Храним время последней отправки
+
+			// Проверяем: прошло ли 100 мс И свободен ли UART?
+			if ((HAL_GetTick() - lastDisplayTime >= 100) && (huart3.gState == HAL_UART_STATE_READY)) {
+			    HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
+			    lastDisplayTime = HAL_GetTick(); // Запоминаем время отправки
 			}
-			protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов  elementFram(5,
-			HAL_Delay(100);			//Без этой паузы дисплей не успевает
+			// Процессор НЕ СПИТ, а продолжает работать:
+//			if (huart3.gState == HAL_UART_STATE_READY) {
+//			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
+//			}
+			//HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */
 

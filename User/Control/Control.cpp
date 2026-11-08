@@ -32,7 +32,7 @@ vu32 Control::bakeTemper() {//Измеряем температуру в дух�
 	return ovenTemper;
 }
 //Измеряем АЦП канала "РЕЖИМ" 3 раза или сколько нужно раз(одного явно мало)
-vu16 Control::readAdc(uint8_t numSamples) {
+vu8 Control::readAdc(uint8_t numSamples) {
     vu32 sum = 0;
     for (vu8 i = 0; i < numSamples; i++) {
     	HAL_ADC_Start(&hadc2);
@@ -50,7 +50,7 @@ vu16 Control::readAdc(uint8_t numSamples) {
     if (averageAdc >= sizeof(rawADC) / sizeof(rawADC[0])) {// Проверяем, не выходим ли за границы массива rawADC
         return 0; // Ошибка
     }
-     Fram::elementFram(1, rawADC[averageAdc]);//Записываем во Fram по адресу "1" номер режима
+     Fram::elementFram(Fram::TARGET_MODE, rawADC[averageAdc]);//Записываем во Fram по адресу "1" номер режима
     return rawADC[averageAdc]; // Возвращаем номер режима
 }
 //---------------------------Восстановление информации после сброса или отключения------------------------
