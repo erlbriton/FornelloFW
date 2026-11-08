@@ -21,7 +21,7 @@
 
 class Heat {
 private:
-	static bool checkProtectionTriggers(vu8);
+	static bool checkProtectionTriggers(uint8_t& dataTransmit);
 	static void checkAndPlaySound();//Проигрывание мелодии
 	//Массив кодов, подающихся непосредственно на тэны и внутренний кулер
 	static constexpr vu8 modeTable[11 ][2] = {

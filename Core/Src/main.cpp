@@ -142,13 +142,13 @@ int main(void)
 	TIM2->CNT = 180;
 	//Protection::Init();
 	//vu8 fram5rd = Fram::elementFram(5); //Читаем из FRAM
-	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
 	//vu8 fram5rd = framRd[5];
 	Button button;
 	Control control;
 	Protection protection;
 	FryModeLambda fryModeLambda;
-	if(framRd[5]){
+	if(Fram::framRdOneAddress(Fram::OPERATING_MODE)){
 		Control::backInfo();//Восстанавливаем работу
 	}
 	else{
@@ -245,14 +245,15 @@ GPIOB->BSRR = GPIO_PIN_9;//Led
 	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
 
 while (1) {
-	        auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+//	        auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+//	        uint8_t framRd1 = Fram::fram_rd_massive()[0];
 			uint16_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
-			Fram::elementFram(1, modeCookAveADC);
+			Fram::elementFram(Fram::TARGET_MODE, modeCookAveADC);
      		Button::encCount();//Задаем температуру
 			//Fram::elementFram(0);//Читаем нулевой член  FRAM(Режим)
 			//if(Fram::elementFram(1)){//Если режим не Off ...
-     		if(framRd[1]){
+     		if(Fram::framRdOneAddress(Fram::TARGET_MODE)){
 				button.scanButton();//... сканируем кнопку и ...
 				button.executeButtonRegim(button.buttonRegim);//...выбираем режим кнопки
 			}
@@ -263,7 +264,7 @@ while (1) {
 			if (huart3.gState == HAL_UART_STATE_READY) {
 			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
 			}
-			//protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов  elementFram(5,
+			protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов  elementFram(5,
 			HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */

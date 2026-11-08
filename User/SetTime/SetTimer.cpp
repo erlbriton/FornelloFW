@@ -17,12 +17,12 @@ void SetTimer::IncrementCookTime(){
 	minutes = minCounterInc % 60;   //минуты
 	Fram::elementFram(2, minutes); //Записываем текущее время - минуты,
 	Fram::elementFram(3, hours);   //...часы...
-	Fram::fram_rd_massive();
+	//Fram::fram_rd_massive();
 	Fram::elementFram(6, minCounterInc >> 8);   // Старший байт
 	Fram::elementFram(7, (minCounterInc & 0xFF));   //Младший байт
 	Fram::elementFram(4, Button::dirTime); //Направление счета времени
 	Fram::fram_wr_massive(); //
-	Fram::fram_rd_massive();
+	//Fram::fram_rd_massive();
 	//**************************  Выводим в USART  ********************************************
 	//#################################Для калибровки датчика температуры убираем##########################
 	buf_485[1] = minutes % 10;   //Единицы минут
@@ -47,7 +47,7 @@ void SetTimer::DecrementCookTime() {
 	    // 2. Сохранение во FRAM
 	    Fram::elementFram(2, minutes);          // Записываем текущее время - минуты
 	    Fram::elementFram(3, hours);            // ...часы...
-	    Fram::fram_rd_massive();
+	    //Fram::fram_rd_massive();
 
 	    // Запись общего счетчика (два байта)
 	    Fram::elementFram(6, minCounterDec >> 8);    // Старший байт

@@ -33,7 +33,7 @@ void Protection::checkProtection(){
     // --- Стандартная проверка остальных ошибок через EXTIManager ---
     uint8_t errorCode = extiManager.checkHeaters(Button::scanButton());
 
-    if (errorCode == 0){
+    if (!errorCode){
         if (tripleTenTimer == 0) {
             buf_485[19] = 0;
             HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, GPIO_PIN_SET);

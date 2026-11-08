@@ -16,13 +16,13 @@
 //--------------------------------------------Сканируем нажатие-------------------------------------
 uint8_t Button::scanButton() {
     // 1. Читаем внешние данные
-	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-    bool isCookingMode = (framRd[1] !=0);// Проверяем, что режим не 0
+//	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+//    bool isCookingMode = (framRd[1] !=0);// Проверяем, что режим не 0
     // 2. Определяем события (на основе состояния с ПРОШЛОГО прохода)
     bool isButtonPressed = (gettingButton == 1 && flagButton == 0);
     bool isButtonReleased = (gettingButton == 0 && flagButton == 1);
     // 3. Логика счетчика (выполняется только ОДИН раз в момент фиксации нажатия)
-    if (isCookingMode && isButtonPressed) {
+    if (Fram::framRdOneAddress(Fram::TARGET_MODE) && isButtonPressed) {
         buttonRegim++;
     }
     if (buttonRegim > 2) {
@@ -73,9 +73,9 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 }
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
-	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
+	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
 	//vu8 settedMode = Fram::elementFram(1);
-	    if(framRd[1] == pre) {
+	    if(Fram::framRdOneAddress(Fram::TARGET_MODE) == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
 	    }else{
 	        executeMainRegimLogic();// В противном случае выполняем основную логику режима
@@ -121,10 +121,10 @@ void Button::buttonRegimThree() {
     Fram::elementFram(5, 1); //Включен режим регулирования
     buf_485[12] = 1; //Включаем точки в часах
     HAL_Delay(50);
-    Fram::framRD0byte();
+    Fram::framRdOneAddress(Fram::TARGET_TEMP);
     flagOneButton = false;//Включаем режим 1-го прохода 1-го режима кнопки
   if (Fram::elementFram(1) != 3 && Fram::elementFram(1) != 10) {//Если режим не set  и light
-      Heat::ajustHeat595(Fram::elementFram(1));//запускаем нагрев в выбранном режиме
+      Heat::ajustHeat595(Fram::framRdOneAddress(Fram::TARGET_MODE));//запускаем нагрев в выбранном режиме
       buf_485[18] = 0;//стираем рамку вокруг часов
      // Protection::Stop();//Выключаем проверку тока в тенах
       GPIOB->BSRR = GPIO_PIN_9;
@@ -197,7 +197,7 @@ vu8 Button::encCount() {
            // Fram::fram_rd_massive();       // Читаем массив обратно
             // Если мы не в режиме настройки "Set", обновляем данные для дисплея
             if (settedMode != set) {
-                byte0Fram = Fram::framRD0byte();
+                byte0Fram = Fram::framRdOneAddress(Fram::TARGET_TEMP);
                 // Разложение числа на разряды для индикации
                 buf_485[8] = byte0Fram % 10;          // Единицы
                 buf_485[9] = (byte0Fram / 10) % 10;   // Десятки

@@ -76,6 +76,16 @@ class Fram {
 	inline static vu8 massive_wr[8];//Массив для записи во FRAM память
 	inline static vu8 massive_rd[8];//Массив для считывания из FRAM памяти
 public:
+	// ---------------Flash  память--------------------------------------------------------
+	    static constexpr uint8_t TARGET_TEMP           = 0;
+	    static constexpr uint8_t TARGET_MODE           = 1;
+	    static constexpr uint8_t CURRENT_MINUTS        = 2;
+	    static constexpr uint8_t CURRENT_HOURS         = 3;
+	    static constexpr uint8_t DIRECTION_TIME        = 4;
+	    static constexpr uint8_t OPERATING_MODE        = 5;
+		static constexpr uint8_t H_BYTE_MINUTS_COUNTER = 6;
+		static constexpr uint8_t L_BYTE_MINUTS_COUNTER = 7;
+
 	 //------------------------------------Tактирование одного бита------------------------------
 	static void fram_pulse(vu8 Delay) {
 		uint8_t i;
@@ -223,6 +233,26 @@ public:
 	    Fram_sio_inOut(false); // ногу порта на выход настроили
 
 	    return buffer; // Возвращаем весь массив целиком
+	}
+//-----------Читаем 1 адрес-----------------------------
+
+	static uint8_t framRdOneAddress(uint8_t address) {
+	    uint8_t i = 0;
+	    uint8_t byteFram = 0; // Защита от мусора
+	    Fram_CS_Down();
+	    for (i = delay; i; i--) {}
+	    framByte(FREAD);      // 1. Отправляем команду "Чтение"
+	    framByte(address);    // 2. Отправляем адрес ячейки (вместо жесткого 0)
+	    for (i = delay; i; i--) {}
+	    for (i = delay; i; i--) {}
+	    Fram_sio_inOut(true); // Ногу порта (MISO) на вход настроили
+	    for (i = delay; i; i--) {}
+	    // 3. Читаем РОВНО ОДИН байт
+	    byteFram = framByte();
+	    for (i = delay; i; i--) {}
+	    Fram_CS_Up();
+	    Fram_sio_inOut(false); // Ногу порта на выход настроили
+	    return byteFram; // Возвращаем прочитанный байт
 	}
 
 	static vu8 framRD0byte() {//Чтение нулевого байта из фрам

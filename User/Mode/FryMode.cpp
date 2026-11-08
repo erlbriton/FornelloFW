@@ -7,11 +7,12 @@
 
 #include "FryMode.hpp"
 #include "Heat.hpp"
+#include "Fram.hpp"
 
 void FryModeLambda::modeCom(vu16 averageAdc, vu8 tempFirstMode) {//Метод, запускаемый при переключении режима
 	firstRegim(tempFirstMode);//Устанавливаем первоначальный режим
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);//Запускаем энкодер в работу
-	buf_485[11] =  Fram::elementFram(1);//Номер режима
+	buf_485[11] =  Fram::framRdOneAddress(Fram::TARGET_MODE);//Номер режима
 }
 //-----------------------------------Начальный режим---------------------------------------
 void FryModeLambda::firstRegim(vu8 tempFirst) {
@@ -33,14 +34,14 @@ void FryModeLambda::firstRegim(vu8 tempFirst) {
 	GPIOC->BSRR |= GPIO_PIN_6 << 16U; //Latch off
 	GPIOA->BSRR |= GPIO_PIN_8; //MR on
 	//-----------------------------------------------------------
-	Fram::elementFram(5, 0);//Сброса во время работы не было
-	Fram::elementFram(0, tempFirst);//Записываем во фрам начальную температуру
+	Fram::elementFram(Fram::OPERATING_MODE, 0);//Сброса во время работы не было
+	Fram::elementFram(Fram::TARGET_TEMP, tempFirst);//Записываем во фрам начальную температуру
 	TIM2->CNT = tempFirst; //Записываем начальную температуру в энкодер
 	Heat::soundPre = false;
 }
 //--------------------------/Записываем номер включенного режима---------------------------------------------
 void FryModeLambda::modeWrite(vu8 modeCookAveADC) {
-	settedMode = Fram::elementFram(1);
+	settedMode = Fram::framRdOneAddress(Fram::TARGET_MODE);
 	buf_485[0] = 151;
 	buf_485[20] = 151;
 	buf_485[11] = settedMode;
