@@ -89,7 +89,7 @@ void Heat::TransmitToTENs(vu8 dataTransmit) {
 vu8 Heat::getDataTransmit() {
 	return dataTransmit;
 }	//Читаем состояние программной посылки на включение-выключение ТЭНов
-//------------------------Гистерезис температур в зависимости от режима---------------------------------------------------
+//------------------------Гистерезис температур в зависимости от режима-----------
 
 vu8 Heat::HysteresisTemp() {
 	if (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) {
@@ -100,9 +100,9 @@ vu8 Heat::HysteresisTemp() {
 //--------------------------------Управление внешним кулером---------------------
 void Heat::setOutCooler() {//    константа        если режим не "set"
     if (Control::ovenTemper > safeTemperature && Fram::framRdOneAddress(Fram::TARGET_MODE) != 3) {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);    // кулер ON
+        HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_SET);    // кулер ON
     } else {
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);  // кулер OFF
+        HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_RESET);  // кулер OFF
     }
 }
 //--------------------------------Подача звука при предварительном нагреве-----------
@@ -112,7 +112,7 @@ void Heat::soundMatch() {
 		}
 
 }
-//-------------------------------------------------------Проверка защит----------------------------------------------------
+//-------------------------------------------------------Проверка защит--------------
 bool Heat::checkProtectionTriggers(uint8_t& dataTransmit) { // Передача по ссылке!
 
     // 1. Считываем уставку ОДИН раз за вызов функции.

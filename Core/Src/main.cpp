@@ -133,17 +133,10 @@ int main(void)
 	HAL_ADC_Start(&hadc2);
 	HAL_TIM_Encoder_Start_IT(&htim2, TIM_CHANNEL_ALL);//Запускаем энкодер
 	Sensor_init();//Температура платы DS18B20
-	//HAL_NVIC_EnableIRQ(EXTI2_IRQn);//Прерывания энкодера
-	//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 	GPIOC->BSRR = GPIO_PIN_4;	//DIR на передачу
 	GPIOA->BSRR = GPIO_PIN_12 << 16U;	//Свет выкл
-	//GPIOA->BSRR= GPIO_PIN_8 << 16U;	//HC595 выкл
 	//__HAL_DBGMCU_FREEZE_IWDG(); //Останавливаем WatchDog в дебаггере
-	TIM2->CNT = 180;
-	//Protection::Init();
-	//vu8 fram5rd = Fram::elementFram(5); //Читаем из FRAM
-	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-	//vu8 fram5rd = framRd[5];
+	TIM2->CNT = 180;// Начальная установлкнная температура
 	Button button;
 	Control control;
 	Protection protection;
@@ -160,9 +153,7 @@ int main(void)
  TIM4- Часы 1 sec
  TIM5 - Защита от залипших контактов реле
  TIM6 - Прерывание для проверки максимальной температуры (10sec)
- TIM7 - Защита от длительного времени включенных тенов(эксперимент пока)
-
-
+ TIM7 - Защита от длительного времени включенных тенов
 
  -------------GPIO's---------------------------------------------
 
@@ -213,47 +204,21 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//HAL_TIM_Base_Start_IT(&htim7);
+
 HAL_Delay(500);
-//HAL_TIM_Base_Stop_IT(&htim7);
-//GPIOA->BSRR = GPIO_PIN_8 << 16U; //Спикер выкл
-//Button button;
-//Control control;
-//FryModeLambda fryModeLambda;
-//MelodyPlayer::playPodmoskovnye();
-//EXTI->IMR &= ~EXTI_IMR_MR15;//Запрещаем прерывание EXTI15
-//GPIOB->BSRR = GPIO_PIN_9;//Led
-//GPIOB->BSRR = GPIO_PIN_15 << 16U; //Спикер выкл
-//GPIOC->BSRR = GPIO_PIN_7 << 16U; // HC595 вкл
-//MelodyPlayer::playPodmoskovnye();
 GPIOB->BSRR = GPIO_PIN_9;//Led
-//GPIOA->BSRR = GPIO_PIN_8 << 16U; //Спикер выкл
 	}
-
-
-
 	MelodyPlayer::init();
 	if (!MelodyPlayer::isPlaying()) {
 	    MelodyPlayer::play();
 	}
 
-	//htim1.Instance->PSC = 167;   // 1 МГц
-	//htim1.Instance->ARR = 999;   // Период 1000 (частота 1 кГц)
-	//htim1.Instance->CCR1 = 500;  // Скважность 50%
-
-	// Запускаем
-	//HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-
 while (1) {
-//	        auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-//	        uint8_t framRd1 = Fram::fram_rd_massive()[0];
 			uint16_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
 			Fram::elementFram(Fram::TARGET_MODE, modeCookAveADC);
      		Button::encCount();//Задаем температуру
-			//Fram::elementFram(0);//Читаем нулевой член  FRAM(Режим)
-			//if(Fram::elementFram(1)){//Если режим не Off ...
-     		if(Fram::framRdOneAddress(Fram::TARGET_MODE)){
+     		if(Fram::framRdOneAddress(Fram::TARGET_MODE)){//Если режим не Off ...
 				button.scanButton();//... сканируем кнопку и ...
 				button.executeButtonRegim(button.buttonRegim);//...выбираем режим кнопки
 			}
