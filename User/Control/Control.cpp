@@ -61,7 +61,8 @@ void Control::backInfo() {
 	//vu8 val = Fram::elementFram(0);
 	//TIM2->CNT = val;
 	//uint8_t temperFornoBack = framRd[0];
-	TIM2->CNT = Fram::framRdOneAddress(Fram::TARGET_TEMP);
+	vu8 targetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);
+	TIM2->CNT = targetTemp;//Fram::framRdOneAddress(Fram::TARGET_TEMP);
 	//temperFornoBack = val;
 	//vu8 modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
 	vu8 modeBack = Fram::framRdOneAddress(Fram::TARGET_MODE); //Восстанавливаем номер режима приготовления
@@ -78,11 +79,11 @@ void Control::backInfo() {
 //	buf_485[4] = framRdWr.massive_rd[3] / 10; //Десятки часов
 //#################################Для калибровки###################################################
 	//buf_485[8] = temperFornoBack % 100 % 10; //Единицы...
-	buf_485[8] = Fram::framRdOneAddress(Fram::TARGET_TEMP) % 100 % 10; //Единицы...
+	buf_485[8] = targetTemp % 10; //Единицы...
 	//buf_485[9] = temperFornoBack % 100 / 10; //...десятки ........
-	buf_485[9] = Fram::framRdOneAddress(Fram::TARGET_TEMP) % 100 / 10; //...десятки ........
+	buf_485[9] = targetTemp % 100 / 10; //...десятки ........
 	//buf_485[10] = temperFornoBack / 100; //...сотни заданной температуры
-	buf_485[10] = Fram::framRdOneAddress(Fram::TARGET_TEMP) / 100; //...сотни заданной температуры
+	buf_485[10] = targetTemp / 100; //...сотни заданной температуры
 	buf_485[11] = modeBack; //Режим приготовления
 	Button::setButtonRegim(2);//Восстанавливаем 3-й режим кнопки
 	SetTimer::number_Iterator_Decrement = true;//Восстанавливаем второй проход инкремента времени
