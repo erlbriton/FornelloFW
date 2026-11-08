@@ -102,6 +102,61 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  /*-------------TIMERS - Нужно проверить
+
+   TIM1 - Мелодия
+   TIM2 - Энкодер
+   TIM3 - Прерывание для ADC1
+   TIM4- Часы 1 sec
+   TIM5 - Защита от залипших контактов реле
+   TIM6 - Прерывание для проверки максимальной температуры (10sec)
+   TIM7 - Защита от длительного времени включенных тенов
+
+   -------------GPIO's---------------------------------------------
+
+   A0 - adc_modeCook| B0 - Door     | C7 - Grill   | D2 - EXTI_4
+   A1 - adc_temp    | B1 - Music    | C8 - Right
+   A2 - adc_t_out   | B2 - EXTI_2   | C9 - Down
+   A5 - Fdata       | B3 - Enc_2    | C10- CSK
+   A7 - FCLK        | B5 - MOSI     | C12- Button
+   A8 - Fan_in      | B8 - CS_595   | C13- Sync
+   A9 - TXD1        | B15- Sp
+   A10- RXD1
+   A12- Ligh
+   A13- SWDIO
+   A14- SWCLK
+   A15- Enc1
+   ---------------Заполнение массива UART для отсылки в дисплей----------------
+   1 - min          = buf_485[1]
+   2 - dec_min      = buf_485[2]
+   3 - one_h        = buf_485[3]
+   4 - dec_h        = buf_485[4]
+   5 - temp1        = buf_485[5]
+   6 - temp2        = buf_485[6]
+   7 - temp3        = buf_485[7]
+   8 - tempset1     = buf_485[8]
+   9 - tempset2     = buf_485[9]
+   10- tempset3     = buf_485[10]
+   11- set          = buf_485[11] - режим
+   12- watch        = buf_485[12] - точки в часах
+   13- fire         = buf_485[13]
+   14- fire_90      = buf_485[14]
+   15- fire_180     = buf_485[15]
+   16- tmp_plt1     = buf_485[16]
+   17- tmp_plt2     = buf_485[17]
+   18- mode_2       = buf_485[18] - рамка вокруг часов
+   19- error        = buf_485[19] - номер ошибки
+
+   ---------------------------------Fram память---------------------------------------
+  	0 - Заданная температура
+  	1 - Номер режима
+  	2 - Минуты
+  	3 - Часы
+  	4 - Направление счета времени
+  	5 - Сброс во время работы
+  	6 - Старший байт счетчика минут
+  	7 - Младший байт счетчика минут
+   ------------------------------------------------------------------------------------------*/
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
@@ -123,6 +178,8 @@ int main(void)
 	//---------------------Сброс HC595--------------------------------
 
 	GPIOC->BSRR = GPIO_PIN_6; //Latch on
+	__NOP();
+	__NOP();
 	GPIOC->BSRR = GPIO_PIN_6 << 16U; //Latch off
 	GPIOC->BSRR = GPIO_PIN_9; //MR on
 	//---------------------------------------------------------------
@@ -145,78 +202,21 @@ int main(void)
 		Control::backInfo();//Восстанавливаем работу
 	}
 	else{
-/*-------------TIMERS - Нужно проверить
+//HAL_Delay(500);
+GPIOB->BSRR = GPIO_PIN_9 << 16U;//Led
 
- TIM1 - Мелодия
- TIM2 - Энкодер
- TIM3 - Прерывание для ADC1
- TIM4- Часы 1 sec
- TIM5 - Защита от залипших контактов реле
- TIM6 - Прерывание для проверки максимальной температуры (10sec)
- TIM7 - Защита от длительного времени включенных тенов
-
- -------------GPIO's---------------------------------------------
-
- A0 - adc_modeCook| B0 - Door     | C7 - Grill   | D2 - EXTI_4
- A1 - adc_temp    | B1 - Music    | C8 - Right
- A2 - adc_t_out   | B2 - EXTI_2   | C9 - Down
- A5 - Fdata       | B3 - Enc_2    | C10- CSK
- A7 - FCLK        | B5 - MOSI     | C12- Button
- A8 - Fan_in      | B8 - CS_595   | C13- Sync
- A9 - TXD1        | B15- Sp
- A10- RXD1
- A12- Ligh
- A13- SWDIO
- A14- SWCLK
- A15- Enc1
- ---------------Заполнение массива UART для отсылки в дисплей----------------
- 1 - min          = buf_485[1]
- 2 - dec_min      = buf_485[2]
- 3 - one_h        = buf_485[3]
- 4 - dec_h        = buf_485[4]
- 5 - temp1        = buf_485[5]
- 6 - temp2        = buf_485[6]
- 7 - temp3        = buf_485[7]
- 8 - tempset1     = buf_485[8]
- 9 - tempset2     = buf_485[9]
- 10- tempset3     = buf_485[10]
- 11- set          = buf_485[11] - режим
- 12- watch        = buf_485[12] - точки в часах
- 13- fire         = buf_485[13]
- 14- fire_90      = buf_485[14]
- 15- fire_180     = buf_485[15]
- 16- tmp_plt1     = buf_485[16]
- 17- tmp_plt2     = buf_485[17]
- 18- mode_2       = buf_485[18] - рамка вокруг часов
- 19- error        = buf_485[19] - номер ошибки
-
- ---------------------------------Fram память---------------------------------------
-	0 - Заданная температура
-	1 - Номер режима
-	2 - Минуты
-	3 - Часы
-	4 - Направление счета времени
-	5 - Сброс во время работы
-	6 - Старший байт счетчика минут
-	7 - Младший байт счетчика минут
- ------------------------------------------------------------------------------------------*/
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
-HAL_Delay(500);
-GPIOB->BSRR = GPIO_PIN_9;//Led
-	}
 	MelodyPlayer::init();
 	if (!MelodyPlayer::isPlaying()) {
 	    MelodyPlayer::play();
 	}
-
+	}
+	/* USER CODE END 2 */
+	/* Infinite loop */
+	  /* USER CODE BEGIN WHILE */
 while (1) {
 			uint8_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
-			static uint8_t oldModeCookAveADC = 0xFFFF;
+			static uint8_t oldModeCookAveADC = 0xFF;
 			if (modeCookAveADC != oldModeCookAveADC) {
 			Fram::elementFram(Fram::TARGET_MODE, modeCookAveADC);
 			oldModeCookAveADC = modeCookAveADC;// Обновляем "память" для следующего цикла
@@ -240,10 +240,6 @@ while (1) {
 			    lastDisplayTime = HAL_GetTick(); // Запоминаем время отправки
 			}
 			// Процессор НЕ СПИТ, а продолжает работать:
-//			if (huart3.gState == HAL_UART_STATE_READY) {
-//			HAL_UART_Transmit_DMA(&huart3, buf_485, 21);
-//			}
-			//HAL_Delay(100);			//Без этой паузы дисплей не успевает
 			//HAL_IWDG_Refresh(&hiwdg); //Обнуляем watchdog
     /* USER CODE END WHILE */
 
