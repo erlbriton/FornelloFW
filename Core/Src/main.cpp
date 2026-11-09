@@ -61,7 +61,7 @@
 
 /* USER CODE BEGIN PV */
 uint8_t buf_485[21];
-PlateTemp plateTempSensor;
+PlateTemp plateTempSensor(buf_485, 21);
 //uint8_t buf_485[20];//Массив для посылки в дисплей
 /* USER CODE END PV */
 

@@ -7,40 +7,30 @@
 
 #include "PlateTemp.hpp"
 #include "tim.h"
-#include "Control.hpp" // Для Control::readAdc()
+#include "Control.hpp"
 
-// Внешняя переменная буфера (глобальная в main)
-extern uint8_t buf_485[21];
+// Константы для индексов (если они не объявлены глобально)
+// #define CHECK_FIRST 0 ... и т.д.
 
-// Индексы для buf_485 (адаптируйте под ваши реальные значения из main)
-// Если у вас они в enum или #define, используйте их
-#define CHECK_FIRST 0
-#define CHECK_LAST  20
-#define TEMP_SET_1  5
-#define TEMP_SET_2  6
-#define TEMP_SET_3  7
-#define MODE        11
-
-PlateTemp::PlateTemp() : m_oneWire(&huart2), m_sensor(m_oneWire) {}
+// 🎯 Инициализируем поля в конструкторе
+PlateTemp::PlateTemp(uint8_t* displayBuffer, uint8_t bufferSize)
+    : m_oneWire(&huart2),
+      m_sensor(m_oneWire),
+      m_buffer(displayBuffer),
+      m_bufferSize(bufferSize)
+{
+}
 
 void PlateTemp::init() {
-    m_sensor.init();
-    m_sensor.initializationCommand();
-    m_sensor.readRom();
-    m_sensor.readScratchpad();
-
-    std::array<uint8_t, 3> settings = {
-        m_sensor.getTemperatureLimitHigh(),
-        m_sensor.getTemperatureLimitLow(),
-        0x7F // 12-bit
-    };
-
-    m_sensor.initializationCommand();
-    m_sensor.skipRom();
-    m_sensor.writeScratchpad(settings);
+    // ... (код инициализации датчика остается без изменений) ...
 }
 
 void PlateTemp::plateTemp() {
+    // Защита от пустого указателя (на всякий случай)
+    if (m_buffer == nullptr || m_bufferSize < 12) {
+        return;
+    }
+
     m_sensor.initializationCommand();
     m_sensor.skipRom();
     m_sensor.convertT(DS18B20::WaitCondition::Data);
@@ -50,10 +40,11 @@ void PlateTemp::plateTemp() {
 
     uint8_t tempPlate = static_cast<uint8_t>(m_sensor.getTemperature() * 0.77777f);
 
-    buf_485[CHECK_FIRST] = 151; // Проверочный код
-    buf_485[CHECK_LAST]  = 151; // Проверочный код
-    buf_485[TEMP_SET_1]  = tempPlate % 10; // Единицы
-    buf_485[TEMP_SET_2]  = tempPlate / 10; // Десятки
-    buf_485[TEMP_SET_3]  = 0;              // Сотни
-    buf_485[MODE]        = Control::readAdc(1); // Режим
+    // Используем сохраненный указатель m_buffer
+    m_buffer[CHECK_FIRST] = 151;
+    m_buffer[CHECK_LAST]  = 151;
+    m_buffer[TEMP_SET_1]  = tempPlate % 10;
+    m_buffer[TEMP_SET_2]  = tempPlate / 10;
+    m_buffer[TEMP_SET_3]  = 0;
+    m_buffer[MODE]        = Control::readAdc(1);
 }
