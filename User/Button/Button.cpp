@@ -13,6 +13,7 @@
 #include "flashdata.hpp"
 #include "Protection.hpp"
 #include "Fram.hpp"
+#include "melody_gpio.hpp"
 //--------------------------------------------Сканируем нажатие-------------------------------------
 uint8_t Button::scanButton() {
     // 1. Читаем внешние данные
@@ -42,7 +43,7 @@ void Button::buttonRegimOne() {
 	uint8_t settedMode = Fram::elementFram(1);//Читаем установленный режим
 	buf_485[12] = 0;//Останавливаем точки в часах
 	//if (flagSoundButton[0] == 0) {
-	    Heat::spOn();           // Подаем звук нажатой кнопки
+	MelodyPlayer::beep();           // Подаем звук нажатой кнопки
 	    flagSoundButton[0] = 1; // Устанавливаем флаг, что звук уже прозвучал
 	    flagSoundButton[1] = 0; // Сбрасываем остальные флаги
 	    flagSoundButton[2] = 0;
@@ -75,6 +76,7 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
 	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
 	//uint8_t settedMode = Fram::elementFram(1);
+	//MelodyPlayer::beep();
 	    if(Fram::framRdOneAddress(Fram::TARGET_MODE) == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
 	    }else{
@@ -84,7 +86,11 @@ void Button::buttonRegimTwo() {//Проверка выключенного ре�
 bool Button::executeMainRegimLogic() {//Метод второго и следующих проходов
     if(firstCall) TIM2->CNT = 0;// Первый проход
     bool isFlagSoundButton = (flagSoundButton[1] != true);//isFlagSoundButton противоположно flagSoundButton[1]
-    isFlagSoundButton && (Heat::spOn(), flagSoundButton[1] = 1, flagSoundButton[2] = 0);
+    if (isFlagSoundButton) {
+        MelodyPlayer::beep();
+        flagSoundButton[1] = 1;
+        flagSoundButton[2] = 0;
+    }
     pass3Button = false;
     encCount(); // Устанавливаем время (или не устанавливаем)
     timerCntEncoder = TIM2->CNT;
@@ -102,7 +108,7 @@ void Button::buttonRegimThree() {
     TIM2->CNT = cntEncoder; // Пишем в счетчик энкодера и во FRAM
     Fram::fram_wr_massive(); // то, что было запомнено при установке температуры
     if (!flagSoundButton[2]) {
-        Heat::spOn();           // Подаем звук
+    	MelodyPlayer::beep();           // Подаем звук
         flagSoundButton[2] = 1; // Устанавливаем флаг поданного сигнала при переходе на 3-й режим кнопки
         flagSoundButton[0] = 0; // Сбрасываем флаг поданного сигнала 1-го режима кнопки
     }

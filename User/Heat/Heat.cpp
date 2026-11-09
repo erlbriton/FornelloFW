@@ -28,7 +28,7 @@ Heat::ajustHeat595(uint8_t numberRegimCook) {
 	}
 	if ((!Heat::soundPre) && (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) && ((Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper) <= HysteresisTemp())) {
 		Heat::soundPre = true;
-		//checkAndPlaySound();// Включаем  "Подмосковные вечера"
+		MelodyPlayer::play();// Включаем  "Подмосковные вечера"
 	}
 	SetTimer::TimeCook(Button::dirTime);
 }

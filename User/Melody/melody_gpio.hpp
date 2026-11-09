@@ -7,6 +7,7 @@
 #include "tim.h"
 #include "melody_library.hpp"
 
+
 class MelodyPlayer {
 public:
     struct DmaNote {
@@ -21,6 +22,7 @@ public:
     static void stop();
     static bool isPlaying();
     static void onDmaComplete();
+    static void beep();
 
     template<size_t N>
     static constexpr auto compileMelody(const std::array<MelodyLibrary::Note, N>& melody) {

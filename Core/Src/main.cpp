@@ -206,9 +206,7 @@ int main(void)
 GPIOB->BSRR = GPIO_PIN_9 << 16U;//Led
 
 	MelodyPlayer::init();
-	if (!MelodyPlayer::isPlaying()) {
-	    MelodyPlayer::play();
-	}
+    MelodyPlayer::play();
 	}
 	/* USER CODE END 2 */
 	/* Infinite loop */
