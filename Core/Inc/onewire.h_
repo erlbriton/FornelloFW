@@ -5,8 +5,8 @@
  *      Author: Yurij
  */
 
-#ifndef INC_ONEWIRE_H_
-#define INC_ONEWIRE_H_
+#ifndef INC_ONEWIRE_H__
+#define INC_ONEWIRE_H__
 
 #include "main.h"
 #include "usart.h"
@@ -27,4 +27,4 @@ uint8_t OneWire_ProcessBit(UART_HandleTypeDef *huart, uint8_t bit);
 
 ONEWIRE_Status OneWire_Reset(UART_HandleTypeDef *huart);
 
-#endif /* INC_ONEWIRE_H_ */
+#endif /* INC_ONEWIRE_H__ */

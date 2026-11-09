@@ -7,10 +7,10 @@
 
 #ifndef MODE_FRYMODE_HPP_
 #define MODE_FRYMODE_HPP_
+#include <DS18B20.hpp>
 #include "main.h"
 #include "flashdata.hpp"
 #include "tim.h"
-#include "DS18B20.h"
 #include "Control.hpp"
 #include "Heat.hpp"
 #include "usart.h"

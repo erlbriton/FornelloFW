@@ -9,6 +9,9 @@
 #include "Heat.hpp"
 #include "Fram.hpp"
 #include "melody_gpio.hpp"
+#include "PlateTemp.hpp"
+
+extern PlateTemp plateTempSensor;
 
 void FryModeLambda::modeCom(uint16_t averageAdc, uint8_t tempFirstMode) {//Метод, запускаемый при переключении режима
 	firstRegim(tempFirstMode);//Устанавливаем первоначальный режим
@@ -79,7 +82,8 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 			GPIOA->BSRR |= GPIO_PIN_11 << 16U;
 			HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_1);
 			HAL_TIM_Base_Stop_IT(&htim4);
-			plateTemp();
+			//plateTemp();
+			plateTempSensor.plateTemp(); // Аналог plateTemp()
 		},
 		//-------------------------4 - Grill---Brow---Fan---Ff---Ord---Cook-----------------------------------------------
 		[ ](FryModeLambda *fryModeLambda) {

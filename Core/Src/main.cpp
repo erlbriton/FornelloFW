@@ -17,6 +17,7 @@
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+//#include <DS18B20.cch>
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
@@ -28,7 +29,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "flashdata.hpp"
-#include "DS18B20.h"
 #include "FryMode.hpp"
 #include "Fram.hpp"
 #include "Control.hpp"
@@ -38,6 +38,7 @@
 #include "Protection.hpp"
 #include "Fram.hpp"
 #include "Protection.hpp"
+#include "PlateTemp.hpp"
 //#include "CallBacks.hpp"
 /* USER CODE END Includes */
 
@@ -60,6 +61,7 @@
 
 /* USER CODE BEGIN PV */
 uint8_t buf_485[21];
+PlateTemp plateTempSensor;
 //uint8_t buf_485[20];//Массив для посылки в дисплей
 /* USER CODE END PV */
 
@@ -189,7 +191,8 @@ int main(void)
 	HAL_TIM_Base_Start(&htim3);
 	HAL_ADC_Start(&hadc2);
 	HAL_TIM_Encoder_Start_IT(&htim2, TIM_CHANNEL_ALL);//Запускаем энкодер
-	Sensor_init();//Температура платы DS18B20
+	//Sensor_init();//Температура платы DS18B20
+	plateTempSensor.init(); // Аналог Sensor_init()
 	GPIOC->BSRR = GPIO_PIN_4;	//DIR на передачу
 	GPIOA->BSRR = GPIO_PIN_12 << 16U;	//Свет выкл
 	//__HAL_DBGMCU_FREEZE_IWDG(); //Останавливаем WatchDog в дебаггере

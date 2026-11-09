@@ -9,10 +9,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-#include "DS18B20.h"
-#include "onewire.h"
-
-
+#include <DS18B20.h_>
+#include <onewire.h_>
 
 /* Declarations and definitions ----------------------------------------------*/
 
@@ -24,8 +22,6 @@ static DS18B20_Command skipRom = {.code = 0xCC, .rxBytesNum = 0, .txBytesNum = 0
 static DS18B20_Command readScratchpad = {.code = 0xBE, .rxBytesNum = 9, .txBytesNum = 0};
 static DS18B20_Command writeScratchpad = {.code = 0x4E, .rxBytesNum = 0, .txBytesNum = 3};
 static DS18B20_Command convertT = {.code = 0x44, .rxBytesNum = 0, .txBytesNum = 0};
-
-
 
 /* Functions -----------------------------------------------------------------*/
 
@@ -47,16 +43,11 @@ static uint8_t CalculateChecksum(uint8_t *data, uint8_t length)
       {
         checksum ^= 0x8C;
       }
-
       currentByte >>= 1;
     }
   }
-
   return checksum;
 }
-
-
-
 /*----------------------------------------------------------------------------*/
 static DS18B20_Status ExecuteCommand(DS18B20 *sensor, DS18B20_Command command, uint8_t *data)
 {
@@ -87,11 +78,8 @@ static DS18B20_Status ExecuteCommand(DS18B20 *sensor, DS18B20_Command command, u
       OneWire_ProcessByte(sensor->uart, data[i]);
     }
   }
-
   return DS18B20_OK;
 }
-
-
 
 /*----------------------------------------------------------------------------*/
 static void WaitForConversionFinished(DS18B20 *sensor)
@@ -102,9 +90,6 @@ static void WaitForConversionFinished(DS18B20 *sensor)
     data = OneWire_ProcessBit(sensor->uart, 1);
   }
 }
-
-
-
 /*----------------------------------------------------------------------------*/
 DS18B20_Status DS18B20_ConvertT(DS18B20 *sensor, uint8_t waitCondition)
 {
@@ -117,7 +102,6 @@ DS18B20_Status DS18B20_ConvertT(DS18B20 *sensor, uint8_t waitCondition)
   {
     WaitForConversionFinished(sensor);
   }
-
   if (waitCondition == DS18B20_DELAY)
   {
     uint32_t delayValueMs = 0;
@@ -143,14 +127,10 @@ DS18B20_Status DS18B20_ConvertT(DS18B20 *sensor, uint8_t waitCondition)
       default:
         break;
     }
-
     HAL_Delay(delayValueMs);
   }
-
   return result;
 }
-
-
 
 /*----------------------------------------------------------------------------*/
 DS18B20_Status DS18B20_ReadScratchpad(DS18B20 *sensor)
@@ -181,11 +161,9 @@ DS18B20_Status DS18B20_ReadScratchpad(DS18B20 *sensor)
     case DS18B20_9_BITS_CONFIG:
       tRegValue &= DS18B20_9_BITS_DATA_MASK;
       break;
-
     case DS18B20_10_BITS_CONFIG:
       tRegValue &= DS18B20_10_BITS_DATA_MASK;
       break;
-
     case DS18B20_11_BITS_CONFIG:
       tRegValue &= DS18B20_11_BITS_DATA_MASK;
       break;
@@ -193,24 +171,17 @@ DS18B20_Status DS18B20_ReadScratchpad(DS18B20 *sensor)
     case DS18B20_12_BITS_CONFIG:
       tRegValue &= DS18B20_12_BITS_DATA_MASK;
       break;
-
     default:
       tRegValue &= DS18B20_12_BITS_DATA_MASK;
       break;
   }
-
   sensor->temperature = (float)tRegValue * DS18B20_T_STEP;
-
   if (sign != 0)
   {
     sensor->temperature *= (-1);
   }
-
   return DS18B20_OK;
 }
-
-
-
 /*----------------------------------------------------------------------------*/
 DS18B20_Status DS18B20_WriteScratchpad(DS18B20 *sensor, uint8_t *data)
 {
@@ -222,16 +193,12 @@ DS18B20_Status DS18B20_WriteScratchpad(DS18B20 *sensor, uint8_t *data)
   {
     return result;
   }
-
   sensor->temperatureLimitHigh = data[0];
   sensor->temperatureLimitLow = data[1];
   sensor->configRegister = data[2];
 
   return result;
 }
-
-
-
 /*----------------------------------------------------------------------------*/
 DS18B20_Status DS18B20_InitializationCommand(DS18B20 *sensor)
 {
@@ -253,9 +220,6 @@ DS18B20_Status DS18B20_InitializationCommand(DS18B20 *sensor)
     return DS18B20_ERROR;
   }
 }
-
-
-
 /*----------------------------------------------------------------------------*/
 DS18B20_Status DS18B20_ReadRom(DS18B20 *sensor)
 {
@@ -275,9 +239,6 @@ DS18B20_Status DS18B20_ReadRom(DS18B20 *sensor)
 
   return DS18B20_OK;
 }
-
-
-
 /*----------------------------------------------------------------------------*/
 DS18B20_Status DS18B20_SkipRom(DS18B20 *sensor)
 {
@@ -292,9 +253,6 @@ DS18B20_Status DS18B20_SkipRom(DS18B20 *sensor)
 
   return DS18B20_OK;
 }
-
-
-
 /*----------------------------------------------------------------------------*/
 void DS18B20_Init(DS18B20 *sensor, UART_HandleTypeDef *huart)
 {
@@ -303,9 +261,6 @@ void DS18B20_Init(DS18B20 *sensor, UART_HandleTypeDef *huart)
   sensor->isInitialized = 1;
 }
 
-
-
-/*----------------------------------------------------------------------------*/
 
 
 
