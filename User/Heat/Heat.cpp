@@ -80,9 +80,9 @@ void Heat::TransmitToTENs(uint8_t dataTransmit) {
 	    uint8_t statusTENs = extiManager.getRealStatus();
 
 	    // Более читаемый вариант работы с битами
-	    buf_485[13] = (statusTENs & (1 << 0)) ? 1 : 0; // Пламя внизу
-	    buf_485[15] = (statusTENs & (1 << 1)) ? 1 : 0; // Пламя вверху
-	    buf_485[14] = (statusTENs & (1 << 2)) ? 1 : 0; // Пламя сбоку
+	    buf_485[FIRE_DOWN] = (statusTENs & (1 << 0)) ? 1 : 0; // Пламя внизу
+	    buf_485[FIRE_UP] = (statusTENs & (1 << 1)) ? 1 : 0; // Пламя вверху
+	    buf_485[FIRE_SIDE] = (statusTENs & (1 << 2)) ? 1 : 0; // Пламя сбоку
 }
 
 

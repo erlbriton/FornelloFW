@@ -8,7 +8,7 @@
 #include "onewire.h"
 #include "tim.h"
 #include "flashdata.hpp"
-#include "HiLowCook.hpp"
+#include "Control.hpp"
 
 DS18B20 temperatureSensor;
 //ModeCook modeCook;
@@ -37,11 +37,12 @@ void plateTemp()
       DS18B20_SkipRom(&temperatureSensor);
       DS18B20_ReadScratchpad(&temperatureSensor);
       uint8_t tempPlate = temperatureSensor.temperature * 0.77777;
-      buf_485[0] = buf_485[20] = 151;
-	  buf_485[8] = tempPlate % 10;//Единицы
-	  buf_485[9] = tempPlate / 10;//Десятки
-	  buf_485[10] = 0;//Сотни
-	  buf_485[11] =static_cast<uint8_t>( modeCook);
+      buf_485[CHECK_FIRST] = 151;// Проверочный код
+      buf_485[CHECK_LAST]  = 151;// Проверочный код
+	  buf_485[TEMP_SET_1]  = tempPlate % 10;//Единицы температуры
+	  buf_485[TEMP_SET_2]  = tempPlate / 10;//Десятки температуры
+	  buf_485[TEMP_SET_3]  = 0;//Сотни температуры
+	  buf_485[MODE]        = Control::readAdc(1);//Режим
 }
 
 

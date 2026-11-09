@@ -137,7 +137,7 @@ int main(void)
    8 - tempset1     = buf_485[8]
    9 - tempset2     = buf_485[9]
    10- tempset3     = buf_485[10]
-   11- set          = buf_485[11] - режим
+   11- mode          = buf_485[11] - режим
    12- watch        = buf_485[12] - точки в часах
    13- fire         = buf_485[13]
    14- fire_90      = buf_485[14]
