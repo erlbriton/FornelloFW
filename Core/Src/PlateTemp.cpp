@@ -9,10 +9,14 @@
 #include "tim.h"
 #include "Control.hpp"
 
-// Константы для индексов (если они не объявлены глобально)
-// #define CHECK_FIRST 0 ... и т.д.
+// Константы индексов (адаптируйте под ваш проект, если они в другом месте)
+#define CHECK_FIRST 0
+#define CHECK_LAST  20
+#define TEMP_SET_1  5
+#define TEMP_SET_2  6
+#define TEMP_SET_3  7
+#define MODE        11
 
-// 🎯 Инициализируем поля в конструкторе
 PlateTemp::PlateTemp(uint8_t* displayBuffer, uint8_t bufferSize)
     : m_oneWire(&huart2),
       m_sensor(m_oneWire),
@@ -22,11 +26,25 @@ PlateTemp::PlateTemp(uint8_t* displayBuffer, uint8_t bufferSize)
 }
 
 void PlateTemp::init() {
-    // ... (код инициализации датчика остается без изменений) ...
+    // 🎯 ПОЛНЫЙ КОД ИНИЦИАЛИЗАЦИИ (как было в Sensor_init)
+    m_sensor.init();
+    m_sensor.initializationCommand();
+    m_sensor.readRom();
+    m_sensor.readScratchpad();
+
+    std::array<uint8_t, 3> settings = {
+        m_sensor.getTemperatureLimitHigh(),
+        m_sensor.getTemperatureLimitLow(),
+        0x7F // 12-bit
+    };
+
+    m_sensor.initializationCommand();
+    m_sensor.skipRom();
+    m_sensor.writeScratchpad(settings);
 }
 
 void PlateTemp::plateTemp() {
-    // Защита от пустого указателя (на всякий случай)
+    // Защита от пустого указателя
     if (m_buffer == nullptr || m_bufferSize < 12) {
         return;
     }
@@ -40,7 +58,7 @@ void PlateTemp::plateTemp() {
 
     uint8_t tempPlate = static_cast<uint8_t>(m_sensor.getTemperature() * 0.77777f);
 
-    // Используем сохраненный указатель m_buffer
+    // Пишем в сохраненный указатель
     m_buffer[CHECK_FIRST] = 151;
     m_buffer[CHECK_LAST]  = 151;
     m_buffer[TEMP_SET_1]  = tempPlate % 10;
