@@ -225,7 +225,7 @@ while (1) {
 				button.executeButtonRegim(button.buttonRegim);//...выбираем режим кнопки
 			}
 			Heat::setOutCooler(); //Вкл-выкл. внешнего кулера
-			protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов
+			//protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов
 			buf_485[11] = modeCookAveADC;
 			buf_485[0] = 151;
 			buf_485[20] = 151;

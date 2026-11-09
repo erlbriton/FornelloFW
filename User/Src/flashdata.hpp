@@ -20,8 +20,8 @@ extern uint8_t buf_485[ ]; //Массив для посылки в диспле�
 
 enum {
 	off,
-	pre,
-	dry,
+	pre,//DW, UP
+	dry,//
 	set,
 	grill,
 	brow,

@@ -69,6 +69,8 @@ void Heat::TransmitToTENs(uint8_t dataTransmit) {
 
 	    // 3. Дергаем Latch (защелкиваем данные в HC595)
 	    HAL_GPIO_WritePin(Latch, diff);
+	    __NOP();
+	    __NOP();
 	    // Небольшая задержка может потребоваться, если HC595 слишком быстрый,
 	    // но на 168 МГц STM32 импульса от двух вызовов WritePin обычно достаточно.
 	    HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);
