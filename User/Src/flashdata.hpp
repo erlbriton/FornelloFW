@@ -51,8 +51,8 @@ static constexpr uint8_t FIRE_UP     = 15;
 static constexpr uint8_t TEMP_PLT_1  = 16;
 static constexpr uint8_t TEMP_PLT_2  = 17;
 static constexpr uint8_t FRAME_WATCH = 18;
-static constexpr uint8_t ERROR_NUM   = 20;
-static constexpr uint8_t CHECK_LAST  = 21;
+static constexpr uint8_t ERROR_NUM   = 19;
+static constexpr uint8_t CHECK_LAST  = 20;
 
 
 #endif /* INC_FLASHDATA_H_ */

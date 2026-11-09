@@ -41,7 +41,7 @@ uint8_t Button::scanButton() {
 void Button::buttonRegimOne() {
 	if(flagOneButton == false){
 	uint8_t settedMode = Fram::elementFram(1);//Читаем установленный режим
-	buf_485[12] = 0;//Останавливаем точки в часах
+	buf_485[WATCH_DOTS] = 0;//Останавливаем точки в часах
 	//if (flagSoundButton[0] == 0) {
 	MelodyPlayer::beep();           // Подаем звук нажатой кнопки
 	    flagSoundButton[0] = 1; // Устанавливаем флаг, что звук уже прозвучал
@@ -94,9 +94,9 @@ bool Button::executeMainRegimLogic() {//Метод второго и следу�
     pass3Button = false;
     encCount(); // Устанавливаем время (или не устанавливаем)
     timerCntEncoder = TIM2->CNT;
-    buf_485[18] = 1;//Рамка вокруг часов при установки времени приготовления
-    buf_485[0] = 151;
-    buf_485[20] = 151;
+    buf_485[FRAME_WATCH] = 1;//Рамка вокруг часов при установки времени приготовления
+    buf_485[CHECK_FIRST] = 151;
+    buf_485[CHECK_LAST]  = 151;
     SetTimer::setTime();
     firstCall = false;
     dirTime = (timerCntEncoder != 0);//Задаем направление счета времени
@@ -125,13 +125,13 @@ void Button::buttonRegimThree() {
         pass3Button = true;//Помечаем, что первый проход выполнен
     }
     Fram::elementFram(5, 1); //Включен режим регулирования
-    buf_485[12] = 1; //Включаем точки в часах
+    buf_485[WATCH_DOTS] = 1; //Включаем точки в часах
     HAL_Delay(50);
     Fram::framRdOneAddress(Fram::TARGET_TEMP);
     flagOneButton = false;//Включаем режим 1-го прохода 1-го режима кнопки
   if (Fram::elementFram(1) != 3 && Fram::elementFram(1) != 10) {//Если режим не set  и light
       Heat::ajustHeat595(Fram::framRdOneAddress(Fram::TARGET_MODE));//запускаем нагрев в выбранном режиме
-      buf_485[18] = 0;//стираем рамку вокруг часов
+      buf_485[FRAME_WATCH] = 0;//стираем рамку вокруг часов
      // Protection::Stop();//Выключаем проверку тока в тенах
       GPIOB->BSRR = GPIO_PIN_9;
   }
@@ -179,11 +179,10 @@ void Button::zeroing() {
 //	buf_485[3] = 0; //Единицы часов
 //	buf_485[4] = 0; //Десятки часов
 //###########################Конец  для калибровки###################################################
-	buf_485[12] = 0;
-	buf_485[12] = 0; //Останавливаем точки в часах
-	buf_485[13] = 0; //Стираем огонь
-	buf_485[14] = 0; //Стираем огонь
-	buf_485[15] = 0; //Стираем огонь
+	buf_485[WATCH_DOTS] = 0; //Останавливаем точки в часах
+	buf_485[FIRE_DOWN] = 0; //Стираем огонь
+	buf_485[FIRE_SIDE] = 0; //Стираем огонь
+	buf_485[FIRE_UP] = 0; //Стираем огонь
 }
 //-------------------------------------------Задаем температуру-----------------
 uint8_t Button::encCount() {
@@ -201,9 +200,9 @@ uint8_t Button::encCount() {
             if (settedMode != set) {
                 byte0Fram = Fram::framRdOneAddress(Fram::TARGET_TEMP);
                 // Разложение числа на разряды для индикации
-                buf_485[8] = byte0Fram % 10;          // Единицы
-                buf_485[9] = (byte0Fram / 10) % 10;   // Десятки
-                buf_485[10] = byte0Fram / 100;        // Сотни
+                buf_485[TEMP_SET_1] = byte0Fram % 10;          // Единицы
+                buf_485[TEMP_SET_2] = (byte0Fram / 10) % 10;   // Десятки
+                buf_485[TEMP_SET_3] = byte0Fram / 100;        // Сотни
             }
             encDone = false;//Сбрасываем флаг прокрутки только после обработки изменения
         }

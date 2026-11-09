@@ -23,11 +23,11 @@ uint32_t Control::bakeTemper() {//Измеряем температуру в д�
 	//ovenTemper = (((0.0814 * tempADC) - 50) * kVref); //Текущая температура в духовке//////////////////////
 	ovenTemper = (((tempADC - 592.5) / 11.83) * kVref); //Текущая температура в духовке//////////////////////
 	(ovenTemper < 15) && (ovenTemper = 15);//На время наладки
-	buf_485[0] = 151;
-	buf_485[20] = 151;
-	buf_485[5] = ovenTemper % 100 % 10; //Единицы
-	buf_485[6] = ovenTemper % 100 / 10; //Десятки
-	buf_485[7] = ovenTemper / 100; //Сотни
+	buf_485[CHECK_FIRST] = 151;
+	buf_485[CHECK_LAST] = 151;
+	buf_485[TEMP_1] = ovenTemper % 100 % 10; //Единицы
+	buf_485[TEMP_2] = ovenTemper % 100 / 10; //Десятки
+	buf_485[TEMP_3] = ovenTemper / 100; //Сотни
 	//HAL_UART_Transmit_IT(&huart3, buf_485, 20);
 	return ovenTemper;
 }
@@ -71,20 +71,17 @@ void Control::backInfo() {
 	//SetTimer::minCounterDec = (Fram::elementFram(6) << 8) | Fram::elementFram(7);//Соединяем старший и младший байты счетчика минут
 	SetTimer::minCounterDec = (Fram::framRdOneAddress(Fram::H_BYTE_MINUTS_COUNTER) << 8 | (Fram::framRdOneAddress(Fram::L_BYTE_MINUTS_COUNTER)));//Соединяем старший и младший байты счетчика минут
 	SetTimer::minCounterInc = SetTimer::minCounterDec;//Счетчик инкремента и декремента времени здесь равны
-	buf_485[0] = buf_485[18] = 151; //Проверочный код посылки
+	buf_485[0] = buf_485[FRAME_WATCH] = 151; //Проверочный код посылки
 //#################################Для калибровки###################################################
 //	buf_485[1] = framRdWr.massive_rd[2] % 10; //Единицы минут
 //	buf_485[2] = framRdWr.massive_rd[2] / 10; //Десятки минут
 //	buf_485[3] = framRdWr.massive_rd[3] % 10; //Единицы часов
 //	buf_485[4] = framRdWr.massive_rd[3] / 10; //Десятки часов
 //#################################Для калибровки###################################################
-	//buf_485[8] = temperFornoBack % 100 % 10; //Единицы...
-	buf_485[8] = targetTemp % 10; //Единицы...
-	//buf_485[9] = temperFornoBack % 100 / 10; //...десятки ........
-	buf_485[9] = targetTemp % 100 / 10; //...десятки ........
-	//buf_485[10] = temperFornoBack / 100; //...сотни заданной температуры
-	buf_485[10] = targetTemp / 100; //...сотни заданной температуры
-	buf_485[11] = modeBack; //Режим приготовления
+	buf_485[TEMP_SET_1] = targetTemp % 10; //Единицы...
+	buf_485[TEMP_SET_2] = targetTemp % 100 / 10; //...десятки ........
+	buf_485[TEMP_SET_3] = targetTemp / 100; //...сотни заданной температуры
+	buf_485[MODE] = modeBack; //Режим приготовления
 	Button::setButtonRegim(2);//Восстанавливаем 3-й режим кнопки
 	SetTimer::number_Iterator_Decrement = true;//Восстанавливаем второй проход инкремента времени
 	SetTimer::number_Iterator_Increment = true;//Восстанавливаем второй проход декремента времени

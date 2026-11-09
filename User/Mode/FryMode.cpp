@@ -13,7 +13,7 @@
 void FryModeLambda::modeCom(uint16_t averageAdc, uint8_t tempFirstMode) {//Метод, запускаемый при переключении режима
 	firstRegim(tempFirstMode);//Устанавливаем первоначальный режим
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);//Запускаем энкодер в работу
-	buf_485[11] =  Fram::framRdOneAddress(Fram::TARGET_MODE);//Номер режима
+	buf_485[MODE] =  Fram::framRdOneAddress(Fram::TARGET_MODE);//Номер режима
 }
 //-----------------------------------Начальный режим---------------------------------------
 void FryModeLambda::firstRegim(uint8_t tempFirst) {
@@ -24,10 +24,10 @@ void FryModeLambda::firstRegim(uint8_t tempFirst) {
 	for (uint8_t i = 0; i < sizeof(indexesToClear)/sizeof(indexesToClear[0]); ++i) {
 	    buf_485[indexesToClear[ i ] ] = 0;
 	}
-	buf_485[0] = buf_485[20] = 151; //Проверочный код посылки
-	buf_485[8] = tempFirst % 100 % 10; //Единицы)
-	buf_485[9] = tempFirst % 100 / 10; //Десятки
-	buf_485[10] = tempFirst / 100;     //Сотни
+	buf_485[CHECK_FIRST] = buf_485[20] = 151; //Проверочный код посылки
+	buf_485[TEMP_SET_1] = tempFirst % 100 % 10; //Единицы)
+	buf_485[TEMP_SET_2] = tempFirst % 100 / 10; //Десятки
+	buf_485[TEMP_SET_3] = tempFirst / 100;     //Сотни
 	Button::regim1Button(); //Включаем 1-й режим button
 	//----------Сбрасываем все выходы у HC595---------------------
 	GPIOA->BSRR |= GPIO_PIN_8 << 16U;	//MR off
@@ -43,9 +43,9 @@ void FryModeLambda::firstRegim(uint8_t tempFirst) {
 //--------------------------/Записываем номер включенного режима---------------------------------------------
 void FryModeLambda::modeWrite(uint8_t modeCookAveADC) {
 	settedMode = Fram::framRdOneAddress(Fram::TARGET_MODE);
-	buf_485[0] = 151;
-	buf_485[20] = 151;
-	buf_485[11] = settedMode;
+	buf_485[CHECK_FIRST] = 151;
+	buf_485[CHECK_LAST] = 151;
+	buf_485[MODE] = settedMode;
 }
 //-----------------------------------------Методы режимов(массив лямбда функций)----------------------------------------------
 const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCookLambdaArray =
@@ -54,14 +54,14 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 			Heat::spOn();//Звук
 			Heat::all_off(); // Выключаем все тены
 			GPIOC->BSRR |= GPIO_PIN_8 << 16U; // Свет выкл
-			buf_485[11] = settedMode;//Off
+			buf_485[MODE] = settedMode;//Off
 		},
 //----------------------------------------------------1 - Pre----------------------------------------------------------------------------
 		[ ](FryModeLambda* fryModeLambda) {
 			fryModeLambda->firstRegim(firstTemp);
 			HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
 			HAL_TIM_Base_Stop_IT(&htim4);
-			buf_485[11] = settedMode; // Pre
+			buf_485[MODE] = settedMode; // Pre
 		},
 		//---------------------------------------------2 - Dry----------------------------------------------------------------------------------
 		[ ](FryModeLambda* fryModeLambda) {
@@ -85,7 +85,7 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 		[ ](FryModeLambda *fryModeLambda) {
 			fryModeLambda->modeCom(settedMode, fryModeLambda->firstTemp);
 			HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
-			buf_485[11] = settedMode;
+			buf_485[MODE] = settedMode;
 		},
         //--------------------------------------------------5 - Light------------------------------------------------------------------
 		[ ](FryModeLambda *fryModeLambda) {
@@ -99,7 +99,7 @@ uint8_t FryModeLambda::ModeSetLambda(uint8_t modeCookNew) {
     повтор и если режим "Set" иначе температура платы будет измеряться только один раз при включении режима*/
 	static constexpr uint8_t modeMapping[11] = {0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 5};//Массив лямбд режимов приготовления
 	uint8_t indexSet = (modeCookNew < 11) ? modeMapping[modeCookNew] : 0;//Выбираем лямбду соответствующую режиму
-	buf_485[11] = modeCookNew;
+	buf_485[MODE] = modeCookNew;
 	ModeSetLambda(modeCookLambdaArray[indexSet], modeCookNew); // Передаем лямбду по индексу
 	modeCookOld = modeCookNew;
 	return modeCookNew;//Номер режима приготовления

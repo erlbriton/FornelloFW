@@ -35,7 +35,7 @@ void Protection::checkProtection(){
 
     if (!errorCode){
         if (tripleTenTimer == 0) {
-            buf_485[19] = 0;
+            buf_485[ERROR_NUM] = 0;
             HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, GPIO_PIN_SET);
         }
         return;
@@ -60,7 +60,7 @@ void Protection::checkProtection(){
 }
 
 void Protection::handleError(const uint8_t errorCode, bool isWarning) {
-    buf_485[19] = errorCode;
+    buf_485[ERROR_NUM] = errorCode;
 
     // Аппаратный сигнал на расцепитель/реле
     HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, (GPIO_PinState)isWarning);

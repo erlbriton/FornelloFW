@@ -201,8 +201,7 @@ int main(void)
 	if(Fram::framRdOneAddress(Fram::OPERATING_MODE)){
 		Control::backInfo();//Восстанавливаем работу
 	}
-	else{
-//HAL_Delay(500);
+	else{//Продолжаем загрузку
 GPIOB->BSRR = GPIO_PIN_9 << 16U;//Led
 
 	MelodyPlayer::init();
@@ -226,9 +225,9 @@ while (1) {
 			}
 			Heat::setOutCooler(); //Вкл-выкл. внешнего кулера
 			//protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов
-			buf_485[11] = modeCookAveADC;
-			buf_485[0] = 151;
-			buf_485[20] = 151;
+			buf_485[MODE] = modeCookAveADC;
+			buf_485[CHECK_FIRST] = 151;
+			buf_485[CHECK_LAST] = 151;
 			// 🎯 НЕБЛОКИРУЮЩАЯ ЗАДЕРЖКА ДЛЯ ДИСПЛЕЯ
 			static uint32_t lastDisplayTime = 0; // Храним время последней отправки
 
