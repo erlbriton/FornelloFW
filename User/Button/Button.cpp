@@ -16,20 +16,17 @@
 #include "melody_gpio.hpp"
 //--------------------------------------------Сканируем нажатие-------------------------------------
 uint8_t Button::scanButton() {
-    // 1. Читаем внешние данные
-//	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-//    bool isCookingMode = (framRd[1] !=0);// Проверяем, что режим не 0
-    // 2. Определяем события (на основе состояния с ПРОШЛОГО прохода)
+    // 1. Определяем события (на основе состояния с ПРОШЛОГО прохода)
     bool isButtonPressed = (gettingButton == 1 && flagButton == 0);
     bool isButtonReleased = (gettingButton == 0 && flagButton == 1);
-    // 3. Логика счетчика (выполняется только ОДИН раз в момент фиксации нажатия)
+    // 2. Логика счетчика (выполняется только ОДИН раз в момент фиксации нажатия)
     if (Fram::framRdOneAddress(Fram::TARGET_MODE) && isButtonPressed) {
         buttonRegim++;
     }
     if (buttonRegim > 2) {
         buttonRegim = 2;
     }
-    // 4. ОБНОВЛЯЕМ СОСТОЯНИЕ ФЛАГА ДЛЯ СЛЕДУЮЩЕГО ВЫЗОВА
+    // 3. ОБНОВЛЯЕМ СОСТОЯНИЕ ФЛАГА ДЛЯ СЛЕДУЮЩЕГО ВЫЗОВА
     if ((flagButton || isButtonPressed) && !isButtonReleased) {
         flagButton = 1;
     } else {
@@ -41,42 +38,26 @@ uint8_t Button::scanButton() {
 void Button::buttonRegimOne() {
 	if(flagOneButton == false){
 	uint8_t settedMode = Fram::elementFram(1);//Читаем установленный режим
-	buf_485[WATCH_DOTS] = 0;//Останавливаем точки в часах
-	//if (flagSoundButton[0] == 0) {
+	buf_485[WATCH_DOTS] = 0;//Останавливаем точки в часах{
 	MelodyPlayer::beep();           // Подаем звук нажатой кнопки
 	    flagSoundButton[0] = 1; // Устанавливаем флаг, что звук уже прозвучал
 	    flagSoundButton[1] = 0; // Сбрасываем остальные флаги
 	    flagSoundButton[2] = 0;
-	//}
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 bool isSettedMode = (settedMode == set || settedMode == light);//Если режим  set или light то isSettedMode == true
  if(isSettedMode){
 	 buttonRegim = 2;
  }
-//isSettedMode && (buttonRegim = 2);//Если режим "light" или  "set" - то buttonRegim  сразу = 2(время выставлять не нужно)
 	zeroing(); //Обнуляем все необходимые флаги
 	GPIOC->BSRR |= GPIO_PIN_8;//Включаем свет
 	pass3Button = false; //Обнуляем флаг прохода режима 3 кнопки(для режима "PRE")
 	HAL_TIM_Base_Stop_IT(&htim4);//Останавливаем часы
 	flagOneButton = true;
 	Fram::elementFram(5, 0);//Снимаем флаг рабочего режима
-//	if(!Protection::protection_is_active){
-//	    Protection::Start();//Запускаем проверку тока в тенах
-//	}
-}
-//	if (Protection::GetState() == SIGNAL_PRESENT) {//Реле залипло!
-//		GPIOC->BSRR = GPIO_PIN_13;//Включить реле выключения автомата
-//		HAL_Delay(2000);
-//		GPIOC->BSRR = GPIO_PIN_13<< 16U;//Выключить реле выключения автомата
-//		GPIOB->BSRR = GPIO_PIN_9 << 16U;
-//		GPIOA->BSRR = GPIO_PIN_12;//Свет
-//	    }
+   }
 }
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
-	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-	//uint8_t settedMode = Fram::elementFram(1);
-	//MelodyPlayer::beep();
 	    if(Fram::framRdOneAddress(Fram::TARGET_MODE) == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
 	    }else{
@@ -195,7 +176,6 @@ uint8_t Button::encCount() {
         if (encMemory != cntEncoder && encDone == true) {
             encMemory = cntEncoder;        // Запоминаем новое значение
             Fram::elementFram(0, cntEncoder); // Сохраняем во внутренний массив
-           // Fram::fram_rd_massive();       // Читаем массив обратно
             // Если мы не в режиме настройки "Set", обновляем данные для дисплея
             if (settedMode != set) {
                 byte0Fram = Fram::framRdOneAddress(Fram::TARGET_TEMP);

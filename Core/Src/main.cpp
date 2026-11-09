@@ -191,8 +191,7 @@ int main(void)
 	HAL_TIM_Base_Start(&htim3);
 	HAL_ADC_Start(&hadc2);
 	HAL_TIM_Encoder_Start_IT(&htim2, TIM_CHANNEL_ALL);//Запускаем энкодер
-	//Sensor_init();//Температура платы DS18B20
-	plateTempSensor.init(); // Аналог Sensor_init()
+	plateTempSensor.init();
 	GPIOC->BSRR = GPIO_PIN_4;	//DIR на передачу
 	GPIOA->BSRR = GPIO_PIN_12 << 16U;	//Свет выкл
 	//__HAL_DBGMCU_FREEZE_IWDG(); //Останавливаем WatchDog в дебаггере
