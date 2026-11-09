@@ -8,6 +8,7 @@
 #include "FryMode.hpp"
 #include "Heat.hpp"
 #include "Fram.hpp"
+#include "melody_gpio.hpp"
 
 void FryModeLambda::modeCom(uint16_t averageAdc, uint8_t tempFirstMode) {//Метод, запускаемый при переключении режима
 	firstRegim(tempFirstMode);//Устанавливаем первоначальный режим
@@ -69,6 +70,10 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 		},
 		//----------------------------------------------3 - Set----------------------------------------------------------------------------------
 		[ ](FryModeLambda* fryModeLambda) {//Set
+			if(!sondFlagSetMode){
+			MelodyPlayer::beep();
+			sondFlagSetMode = true;
+			}
 			Heat::all_off(); //Выключаем все
 			//HAL_GPIO_WritePin(fanOut, GPIO_PIN_RESET);
 			GPIOA->BSRR |= GPIO_PIN_11 << 16U;

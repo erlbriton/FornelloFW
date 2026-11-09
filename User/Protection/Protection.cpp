@@ -64,7 +64,8 @@ void Protection::handleError(const uint8_t errorCode, bool isWarning) {
 
     // Аппаратный сигнал на расцепитель/реле
     HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, (GPIO_PinState)isWarning);
-
+    HAL_Delay(2000);
+    HAL_GPIO_WritePin(Off_GPIO_Port, Off_Pin, GPIO_PIN_SET);//Снимаем напряжение с реле
     if(errorCode > 3){
         Button::regim1Button(); // Сброс программного режима при аварии
     }

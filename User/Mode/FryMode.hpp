@@ -36,6 +36,7 @@ public:
   //-----------------------------------------Новый метод-----------------------------------------------//
 	uint8_t ModeSetLambda(uint8_t index); // Метод для вызова лямбда-функции по индексу
 	void ModeSetLambda(std::function<void(FryModeLambda*)> lambda, uint8_t);// Метод для вызова лямбда-функции, переданной как параметр
+	inline static bool sondFlagSetMode;
 
 private:
 	static const std::array<std::function<void(FryModeLambda*)>, 6> modeCookLambdaArray;// Массив лямбда-функций
