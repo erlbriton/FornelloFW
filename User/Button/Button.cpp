@@ -89,6 +89,7 @@ bool Button::executeMainRegimLogic() {//Метод второго и следу�
 //--------------3-й режим---------------------------------------------------------
 void Button::buttonRegimThree() {
 	Fram fram;
+	uint8_t mode = fram.framRdOneAddress(fram.TARGET_MODE);
     Fram::elementFram(0, cntEncoder);
     TIM2->CNT = cntEncoder; // Пишем в счетчик энкодера и во FRAM
     Fram::fram_wr_massive(); // то, что было запомнено при установке температуры
@@ -111,11 +112,11 @@ void Button::buttonRegimThree() {
     }
     Fram::elementFram(5, 1); //Включен режим регулирования
     buf_485[WATCH_DOTS] = 1; //Включаем точки в часах
-    HAL_Delay(50);
-    fram.framRdOneAddress(fram.TARGET_TEMP);
+   // HAL_Delay(50);
+    //fram.framRdOneAddress(fram.TARGET_TEMP);
     flagOneButton = false;//Включаем режим 1-го прохода 1-го режима кнопки
-  if (Fram::elementFram(1) != 3 && Fram::elementFram(1) != 10) {//Если режим не set  и light
-      Heat::ajustHeat595(fram.framRdOneAddress(fram.TARGET_MODE));//запускаем нагрев в выбранном режиме
+  if (mode != 3 && mode != 10) {//Если режим не set  и light//////////////////////////////////
+      Heat::ajustHeat595(mode);//запускаем нагрев в выбранном режиме
       buf_485[FRAME_WATCH] = 0;//стираем рамку вокруг часов
      // Protection::Stop();//Выключаем проверку тока в тенах
       GPIOB->BSRR = GPIO_PIN_9;
@@ -133,17 +134,19 @@ const std::array<std::function<void(Button*)>, 3> Button::arrButtonRegim = {
 };
 //-------------------------------------Выбор режима кнопки-------------------------------------------
 bool Button::executeButtonRegim(uint8_t index)  {
-    if (index >= 0 && index < arrButtonRegim.size()) {
+    if (/*index >= 0 &&*/ index < arrButtonRegim.size()) {
         arrButtonRegim[index](this); //Передаём `this` в лямбду
     }
     return true;
 }
 //--------------------------------------Zeroing------------------------------------------------------
 void Button::zeroing() {
+	Heat heat;
 	SetTimer::number_Iterator_Increment = false;
 	SetTimer::number_Iterator_Decrement = false;
 	firstCall = true;
-	Heat::soundPre = false;
+	heat.isSoundPre();
+	//Heat::soundPre = false;
 	cntEncoder = 0;
 	SetTimer::hoursSet = 0;
 	SetTimer::minutesSet = 0;
@@ -156,7 +159,8 @@ void Button::zeroing() {
 	SetTimer::minCounterDec = 0;
 	SetTimer::totalTime = 0;//Общее время нагрева
 	FryModeLambda::sondFlagSetMode = false;
-	Heat::dataModeOld = 0xFF;
+	heat.isDataModeOld(0xFF);
+	//Heat::dataModeOld = 0xFF;
 	//--------------------Выводим в дисплей-------------------------------------------
 //#################################Для калибровки###################################################
 //	buf_485[1] = 0; ////Единицы минут

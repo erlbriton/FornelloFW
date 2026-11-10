@@ -38,11 +38,13 @@ private:
 		    {0,     0}//Light
 };
 	inline static uint8_t dataTransmit;
+
+	uint8_t dataModeOld = 0;//Режим(см. выше) прошлой итерации. Нужен для сравнения с текущим режимом
 public:
 	static uint8_t getDataTransmit();
 	static inline bool soundPre;//Флаг подачи звука предварительного нагрева
 	static inline uint8_t dataMode;	//Ключ для массива пар, который определяет данные для передачи на 595(работае также просто как локальная переменная)
-	static inline uint8_t dataModeOld = 0;//Режим(см. выше) прошлой итерации. Нужен для сравнения с текущим режимом и принятия
+	//static inline uint8_t dataModeOld = 0;//Режим(см. выше) прошлой итерации. Нужен для сравнения с текущим режимом и принятия
 	static const uint32_t maxTotalTime = 43200;	//Общее время работы до 120 градусов
 	static const uint16_t minTotalTime = 10800;	//Общее время работы более  120 градусов
 	static  void ajustHeat595(uint8_t numberRegimCook);
@@ -56,6 +58,18 @@ public:
 	}
 	static void setOutCooler(); //Управление внешним кулером---------------------
 	static void soundMatch(); //Подача звука при предварительном нагреве
+// Сеттеры
+	void  isSoundPre(){
+		soundPre = false;
+	}
+
+	void isDataModeOld(uint8_t setDataModeOld){
+		dataModeOld = setDataModeOld;
+	}
+// Геттеры
+	uint8_t getDataModeOld(){
+		return dataModeOld;
+	}
 //---------------------Делаем inline метод--------------------------------------
 	static inline bool spOn() { //Подача звука при переключении режима и нажатии кнопки
 		return true;

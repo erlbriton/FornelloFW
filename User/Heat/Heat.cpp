@@ -38,9 +38,10 @@ Heat::ajustHeat595(uint8_t numberRegimCook) {
 //----------------------------Передаем на ТЭНЫ через SPI и HC595---------------------------
 
 void Heat::TransmitToTENs(uint8_t dataTransmit){
+	Heat heat;
 	    // 1. Сравниваем свежую посылку со старым состоянием
 	    // XOR даст 0, если байты одинаковые, и >0, если есть отличия
-	    uint8_t difference = dataModeOld ^ dataTransmit;
+	    uint8_t difference = heat.getDataModeOld() ^ dataTransmit;
 	    GPIO_PinState diff = (difference != 0) ? GPIO_PIN_SET : GPIO_PIN_RESET;
 
 	    // 2. Отправляем данные по SPI
@@ -59,7 +60,7 @@ void Heat::TransmitToTENs(uint8_t dataTransmit){
 	    HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);
 
 	    // 4. Сохраняем текущее состояние для следующего сравнения
-	    dataModeOld = dataTransmit;
+	    heat.isDataModeOld(dataTransmit);
 
 	    // 5. Включаем или выключаем пламя на дисплее
 	    uint8_t statusTENs = extiManager.getRealStatus();
