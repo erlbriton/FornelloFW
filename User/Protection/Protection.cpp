@@ -13,6 +13,7 @@ Protection::Protection() : tripleTenTimer(0) {} // Инициализация в
 EXTIManager extiManager;
 
 void Protection::checkProtection(){
+	Button button;
     // Получаем текущее время один раз для всех расчетов в этой итерации
     uint32_t now = HAL_GetTick();
 
@@ -31,7 +32,7 @@ void Protection::checkProtection(){
     }
 
     // --- Стандартная проверка остальных ошибок через EXTIManager ---
-    uint8_t errorCode = extiManager.checkHeaters(Button::scanButton());
+    uint8_t errorCode = extiManager.checkHeaters(button.scanButton());
 
     if (!errorCode){
         if (tripleTenTimer == 0) {

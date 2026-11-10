@@ -30,6 +30,18 @@ public:
 	static inline uint32_t minutesSet = 0; //Установленные минуты
 	static inline uint32_t memTime = 0; //Запоминаем время, выставленное энкодером
 
+	void resetSetTimer(){
+		number_Iterator_Increment = false;
+		number_Iterator_Decrement = false;
+		hoursSet = 0;
+		minutesSet = 0;
+		memTime = 0;
+		secondCounter = 0;
+		minCounterInc = 0;
+		minCounterDec = 0;
+		totalTime = 0;
+	}
+
 	static uint16_t setTime() {//Задаем время приготовления
 		hoursSet = TIM2->CNT / 60;     //Часы
 		minutesSet = TIM2->CNT % 60;     //минуты
@@ -41,7 +53,7 @@ public:
 		buf_485[20] = 151;
 		return memTime = TIM2->CNT;
 	}
-static void TimeCook(bool dirTime){
+void TimeCook(bool dirTime){
 	dirTime ? DecrementCookTime() : IncrementCookTime();//Выбираем направление счета
 }
 static void  IncrementCookTime();

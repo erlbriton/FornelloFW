@@ -21,7 +21,8 @@ void FryModeLambda::modeCom(uint16_t averageAdc, uint8_t tempFirstMode) {//Ме�
 }
 //-----------------------------------Начальный режим---------------------------------------
 void FryModeLambda::firstRegim(uint8_t tempFirst) {
-	Heat::spOn();//Писк
+	Fram fram;
+	//Heat::spOn();//Писк
 	Button::flagOneButton = false;//Флаг первого режима кнопки
 	TIM2->CNT = 0;
 	uint8_t indexesToClear[ ] = {1, 2, 3, 4, 12, 13, 14, 15, 18};//Стираем рамку вокруг часов, точки в часах, все пламя
@@ -39,8 +40,8 @@ void FryModeLambda::firstRegim(uint8_t tempFirst) {
 	GPIOC->BSRR |= GPIO_PIN_6 << 16U; //Latch off
 	GPIOA->BSRR |= GPIO_PIN_8; //MR on
 	//-----------------------------------------------------------
-	Fram::elementFram(Fram::OPERATING_MODE, 0);//Сброса во время работы не было
-	Fram::elementFram(Fram::TARGET_TEMP, tempFirst);//Записываем во фрам начальную температуру
+	fram.elementFram(fram.OPERATING_MODE, 0);//Сброса во время работы не было
+	fram.elementFram(fram.TARGET_TEMP, tempFirst);//Записываем во фрам начальную температуру
 	TIM2->CNT = tempFirst; //Записываем начальную температуру в энкодер
 	Heat::soundPre = false;
 }
@@ -56,8 +57,9 @@ void FryModeLambda::modeWrite(uint8_t modeCookAveADC) {
 const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCookLambdaArray =
 		//--------------------------------------------0  -  Off--------------------------------------------------------------------------
 		{ [ ](FryModeLambda* fryModeLambda) {
-			Heat::spOn();//Звук
-			Heat::all_off(); // Выключаем все тены
+			Heat heat;
+			//Heat::spOn();//Звук
+			heat.all_off(); // Выключаем все тены
 			GPIOC->BSRR |= GPIO_PIN_8 << 16U; // Свет выкл
 			buf_485[MODE] = settedMode;//Off
 		},
@@ -75,11 +77,13 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 		},
 		//----------------------------------------------3 - Set----------------------------------------------------------------------------------
 		[ ](FryModeLambda* fryModeLambda) {//Set
+			Heat heat;
+
 			if(!sondFlagSetMode){
 			MelodyPlayer::beep();
 			sondFlagSetMode = true;
 			}
-			Heat::all_off(); //Выключаем все
+			heat.all_off(); //Выключаем все
 			//HAL_GPIO_WritePin(fanOut, GPIO_PIN_RESET);
 			GPIOA->BSRR |= GPIO_PIN_11 << 16U;
 			HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_1);
@@ -95,7 +99,8 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 		},
         //--------------------------------------------------5 - Light------------------------------------------------------------------
 		[ ](FryModeLambda *fryModeLambda) {
-			Heat::all_off(); //Выключаем все
+			Heat heat;
+			heat.all_off(); //Выключаем все
 			fryModeLambda->firstRegim(fryModeLambda->firstTemp);
 			HAL_TIM_Base_Stop_IT(&htim4);
 		} };

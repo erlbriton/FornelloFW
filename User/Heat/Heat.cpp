@@ -19,8 +19,10 @@
 void
 Heat::ajustHeat595(uint8_t numberRegimCook) {
 	Fram fram;
+	Button button;
+	SetTimer setTimer;
 	uint8_t currentTemp = fram.framRdOneAddress(Fram::TARGET_TEMP);
-	Button::encCount(); //Установка температуры в режиме приготовления
+	button.encCount(); //Установка температуры в режиме приготовления
 	uint8_t differenceTemper = currentTemp - Control::ovenTemper; //Разность между установленной и текущей температурой
 //Определяем номер члена столбца(второй мерности) массива modeTable. То есть включать 1 ТЭН или 2.
 	bool hiLowMode = static_cast<bool>(differenceTemper > HysteresisTemp(numberRegimCook));
@@ -32,7 +34,7 @@ Heat::ajustHeat595(uint8_t numberRegimCook) {
 		Heat::soundPre = true;
 		MelodyPlayer::play();// Включаем  "Подмосковные вечера"
 	}
-	SetTimer::TimeCook(Button::dirTime);
+	setTimer.TimeCook(button.dirTime);
 }
 
 //----------------------------Передаем на ТЭНЫ через SPI и HC595---------------------------
@@ -60,7 +62,7 @@ void Heat::TransmitToTENs(uint8_t dataTransmit){
 	    HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);
 
 	    // 4. Сохраняем текущее состояние для следующего сравнения
-	    heat.isDataModeOld(dataTransmit);
+	    heat.setDataModeOld(dataTransmit);
 
 	    // 5. Включаем или выключаем пламя на дисплее
 	    uint8_t statusTENs = extiManager.getRealStatus();

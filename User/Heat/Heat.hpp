@@ -50,20 +50,21 @@ public:
 	static  void ajustHeat595(uint8_t numberRegimCook);
 	static void TransmitToTENs(uint8_t);
 	static uint8_t HysteresisTemp(uint8_t); //Гистерезис температур в зависимости от режима
-	inline static void all_off(){ //Просто делаем сброс HC595
+	void all_off(){ //Просто делаем сброс HC595
 		GPIOC->BSRR |= GPIO_PIN_9 << 16U;   //MR Off
 		GPIOC->BSRR |= GPIO_PIN_6; //Latch on
 		GPIOC->BSRR |= GPIO_PIN_6 << 16U; //Latch off
 		GPIOC->BSRR |= GPIO_PIN_9; //MR On
 	}
-	static void setOutCooler(); //Управление внешним кулером---------------------
+    void setOutCooler(); //Управление внешним кулером---------------------
 	static void soundMatch(); //Подача звука при предварительном нагреве
+
 // Сеттеры
-	void  isSoundPre(){
+	void  setSoundPre(){
 		soundPre = false;
 	}
 
-	void isDataModeOld(uint8_t setDataModeOld){
+	void setDataModeOld(uint8_t setDataModeOld){
 		dataModeOld = setDataModeOld;
 	}
 // Геттеры

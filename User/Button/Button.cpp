@@ -19,6 +19,7 @@ uint8_t Button::scanButton() {
 	Fram fram;
     // 1. Определяем события (на основе состояния с ПРОШЛОГО прохода)
     bool isButtonPressed = (gettingButton == 1 && flagButton == 0);
+
     bool isButtonReleased = (gettingButton == 0 && flagButton == 1);
     // 2. Логика счетчика (выполняется только ОДИН раз в момент фиксации нажатия)
     if (fram.framRdOneAddress(fram.TARGET_MODE) && isButtonPressed) {
@@ -55,7 +56,7 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 	pass3Button = false; //Обнуляем флаг прохода режима 3 кнопки(для режима "PRE")
 	HAL_TIM_Base_Stop_IT(&htim4);//Останавливаем часы
 	flagOneButton = true;
-	Fram::elementFram(5, 0);//Снимаем флаг рабочего режима
+	fram.elementFram(5, 0);//Снимаем флаг рабочего режима
    }
 }
 //-----------------------Второй режим кнопки----------------------------
@@ -90,16 +91,16 @@ bool Button::executeMainRegimLogic() {//Метод второго и следу�
 void Button::buttonRegimThree() {
 	Fram fram;
 	uint8_t mode = fram.framRdOneAddress(fram.TARGET_MODE);
-    Fram::elementFram(0, cntEncoder);
+    fram.elementFram(fram.TARGET_TEMP, cntEncoder);
     TIM2->CNT = cntEncoder; // Пишем в счетчик энкодера и во FRAM
-    Fram::fram_wr_massive(); // то, что было запомнено при установке температуры
+    fram.fram_wr_massive(); // то, что было запомнено при установке температуры
     if (!flagSoundButton[2]) {
     	MelodyPlayer::beep();           // Подаем звук
         flagSoundButton[2] = 1; // Устанавливаем флаг поданного сигнала при переходе на 3-й режим кнопки
         flagSoundButton[0] = 0; // Сбрасываем флаг поданного сигнала 1-го режима кнопки
     }
     if (!pass3Button) {//Блок инициализации при первом проходе
-        uint8_t settedMode = Fram::elementFram(1);// Читаем режим из памяти
+        uint8_t settedMode = fram.framRdOneAddress(fram.TARGET_MODE);// Читаем режим из памяти
         HAL_TIM_Base_Start_IT(&htim4);//Запускаем таймер времени
         uint8_t tempValue;
         if (settedMode != dry) {//Определяем начальную температуру
@@ -107,13 +108,11 @@ void Button::buttonRegimThree() {
         } else {
             tempValue = FryModeLambda::firstTempDry;
         }
-        Fram::elementFram(0, tempValue);
+        fram.elementFram(fram.TARGET_TEMP, tempValue);
         pass3Button = true;//Помечаем, что первый проход выполнен
     }
-    Fram::elementFram(5, 1); //Включен режим регулирования
+    fram.elementFram(fram.OPERATING_MODE, 1); //Включен режим регулирования
     buf_485[WATCH_DOTS] = 1; //Включаем точки в часах
-   // HAL_Delay(50);
-    //fram.framRdOneAddress(fram.TARGET_TEMP);
     flagOneButton = false;//Включаем режим 1-го прохода 1-го режима кнопки
   if (mode != 3 && mode != 10) {//Если режим не set  и light//////////////////////////////////
       Heat::ajustHeat595(mode);//запускаем нагрев в выбранном режиме
@@ -142,25 +141,16 @@ bool Button::executeButtonRegim(uint8_t index)  {
 //--------------------------------------Zeroing------------------------------------------------------
 void Button::zeroing() {
 	Heat heat;
-	SetTimer::number_Iterator_Increment = false;
-	SetTimer::number_Iterator_Decrement = false;
+	SetTimer setTimer;
+	FryModeLambda fryModeLambda;
+	setTimer.resetSetTimer();
 	firstCall = true;
-	heat.isSoundPre();
-	//Heat::soundPre = false;
+	heat.setSoundPre();
+	heat.setDataModeOld(0xFF);
 	cntEncoder = 0;
-	SetTimer::hoursSet = 0;
-	SetTimer::minutesSet = 0;
-	SetTimer::memTime = 0;
-	Heat::all_off(); //Выключение всего
-	//SetTimer::number_Iterator_Increment = false;
-	Button::dirTime = false;
-	SetTimer::secondCounter = 0;
-	SetTimer::minCounterInc = 0;
-	SetTimer::minCounterDec = 0;
-	SetTimer::totalTime = 0;//Общее время нагрева
-	FryModeLambda::sondFlagSetMode = false;
-	heat.isDataModeOld(0xFF);
-	//Heat::dataModeOld = 0xFF;
+	heat.all_off(); //Выключение всего
+	dirTime = false;
+	fryModeLambda.sondFlagSetMode = false;
 	//--------------------Выводим в дисплей-------------------------------------------
 //#################################Для калибровки###################################################
 //	buf_485[1] = 0; ////Единицы минут
@@ -176,7 +166,7 @@ void Button::zeroing() {
 //-------------------------------------------Задаем температуру-----------------
 uint8_t Button::encCount() {
 	Fram fram;
-    uint8_t settedMode = Fram::elementFram(1); // Читаем установленный режим из Fram
+    uint8_t settedMode = fram.framRdOneAddress(fram.TARGET_MODE); // Читаем установленный режим из Fram
     uint8_t byte0Fram = 0;
     // Главное условие: работаем, если режим не равен 1
     if (buttonRegim != 1) {
@@ -184,7 +174,7 @@ uint8_t Button::encCount() {
         // Проверяем, изменились ли данные и был ли поворот (флаг encDone)
         if (encMemory != cntEncoder && encDone == true) {
             encMemory = cntEncoder;        // Запоминаем новое значение
-            Fram::elementFram(0, cntEncoder); // Сохраняем во внутренний массив
+            fram.elementFram(fram.TARGET_TEMP, cntEncoder); // Сохраняем во внутренний массив
             // Если мы не в режиме настройки "Set", обновляем данные для дисплея
             if (settedMode != set) {
                 byte0Fram = fram.framRdOneAddress(Fram::TARGET_TEMP);

@@ -33,6 +33,7 @@ uint32_t Control::bakeTemper() {//Измеряем температуру в д�
 }
 //Измеряем АЦП канала "РЕЖИМ" 3 раза или сколько нужно раз(одного явно мало)
 uint8_t Control::readAdc(uint8_t numSamples) {
+	Fram fram;
     uint32_t sum = 0;
     for (uint8_t i = 0; i < numSamples; i++) {
     	HAL_ADC_Start(&hadc2);
@@ -50,19 +51,21 @@ uint8_t Control::readAdc(uint8_t numSamples) {
     if (averageAdc >= sizeof(rawADC) / sizeof(rawADC[0])) {// Проверяем, не выходим ли за границы массива rawADC
         return 0; // Ошибка
     }
-     Fram::elementFram(Fram::TARGET_MODE, rawADC[averageAdc]);//Записываем во Fram по адресу "1" номер режима
+     fram.elementFram(fram.TARGET_MODE, rawADC[averageAdc]);//Записываем во Fram по адресу "1" номер режима
     return rawADC[averageAdc]; // Возвращаем номер режима
 }
+
 //---------------------------Восстановление информации после сброса или отключения------------------------
 void Control::backInfo() {
 	Fram fram;
+	Button button;
 	uint8_t targetTemp = fram.framRdOneAddress(fram.TARGET_TEMP);
 	TIM2->CNT = targetTemp;//Fram::framRdOneAddress(Fram::TARGET_TEMP);
 	//temperFornoBack = val;
 	//uint8_t modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
 	uint8_t modeBack = fram.framRdOneAddress(fram.TARGET_MODE); //Восстанавливаем номер режима приготовления
 	//Button::dirTime = Fram::elementFram(4); //Направление счета времени
-	Button::dirTime = fram.framRdOneAddress(fram.DIRECTION_TIME); //Направление счета времени
+	button.dirTime = fram.framRdOneAddress(fram.DIRECTION_TIME); //Направление счета времени
 	//SetTimer::minCounterDec = (Fram::elementFram(6) << 8) | Fram::elementFram(7);//Соединяем старший и младший байты счетчика минут
 	SetTimer::minCounterDec = (fram.framRdOneAddress(fram.H_BYTE_MINUTS_COUNTER) << 8 | (fram.framRdOneAddress(fram.L_BYTE_MINUTS_COUNTER)));//Соединяем старший и младший байты счетчика минут
 	SetTimer::minCounterInc = SetTimer::minCounterDec;//Счетчик инкремента и декремента времени здесь равны

@@ -200,6 +200,7 @@ int main(void)
 	Protection protection;
 	FryModeLambda fryModeLambda;
 	Fram fram;
+	Heat heat;
 	if(fram.framRdOneAddress(Fram::OPERATING_MODE)){
 		Control::backInfo();//Восстанавливаем работу
 	}
@@ -218,15 +219,15 @@ while (1) {
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
 			static uint8_t oldModeCookAveADC = 0xFF;
 			if (modeCookAveADC != oldModeCookAveADC) {
-			Fram::elementFram(mode, modeCookAveADC);
+			fram.elementFram(mode, modeCookAveADC);
 			oldModeCookAveADC = modeCookAveADC;// Обновляем "память" для следующего цикла
 			}
-     		Button::encCount();//Задаем температуру
+     		button.encCount();//Задаем температуру
      		if(mode){//Если режим не Off ...
 				button.scanButton();//... сканируем кнопку и ...
 				button.executeButtonRegim(button.buttonRegim);//...выбираем режим кнопки
 			}
-			Heat::setOutCooler(); //Вкл-выкл. внешнего кулера
+			heat.setOutCooler(); //Вкл-выкл. внешнего кулера
 			//protection.checkProtection();//Проверка на исправность ТЭНов и реле включения тэнов
 			buf_485[MODE] = modeCookAveADC;
 			buf_485[CHECK_FIRST] = 151;

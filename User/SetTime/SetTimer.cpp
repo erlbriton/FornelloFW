@@ -9,20 +9,21 @@
 #include "Button.hpp"
 //----------------------------------------------------------Increment времени----------------------------------
 void SetTimer::IncrementCookTime(){
+	Fram fram;
+	Button button;
 	if(!number_Iterator_Increment){
 	    minCounterInc = 0;
 	    number_Iterator_Increment = true;
 	}
 	hours = minCounterInc / 60;   //Часы
 	minutes = minCounterInc % 60;   //минуты
-	Fram::elementFram(2, minutes); //Записываем текущее время - минуты,
-	Fram::elementFram(3, hours);   //...часы...
+	fram.elementFram(fram.CURRENT_MINUTS, minutes); //Записываем текущее время - минуты,
+	fram.elementFram(fram.CURRENT_HOURS, hours);   //...часы...
 	//Fram::fram_rd_massive();
-	Fram::elementFram(6, minCounterInc >> 8);   // Старший байт
-	Fram::elementFram(7, (minCounterInc & 0xFF));   //Младший байт
-	Fram::elementFram(4, Button::dirTime); //Направление счета времени
-	Fram::fram_wr_massive(); //
-	//Fram::fram_rd_massive();
+	fram.elementFram(fram.H_BYTE_MINUTS_COUNTER, minCounterInc >> 8);   // Старший байт
+	fram.elementFram(fram.L_BYTE_MINUTS_COUNTER, (minCounterInc & 0xFF));   //Младший байт
+	fram.elementFram(fram.DIRECTION_TIME, button.dirTime); //Направление счета времени
+	fram.fram_wr_massive(); //
 	//**************************  Выводим в USART  ********************************************
 	//#################################Для калибровки датчика температуры убираем##########################
 	buf_485[1] = minutes % 10;   //Единицы минут
@@ -34,6 +35,8 @@ void SetTimer::IncrementCookTime(){
 //--------------------------------------------------------Decrement времени---------------------------------------------
 void SetTimer::DecrementCookTime() {
 	// Первый вход — устанавливаем флаг первого прохода и начальное значение времени
+	Fram fram;
+	Button button;
 	if (!number_Iterator_Decrement) {
 	    minCounterDec = Button::timerCntEncoder;
 	    number_Iterator_Decrement = true;
@@ -45,15 +48,15 @@ void SetTimer::DecrementCookTime() {
 	    minutes = minCounterDec % 60;
 
 	    // 2. Сохранение во FRAM
-	    Fram::elementFram(2, minutes);          // Записываем текущее время - минуты
-	    Fram::elementFram(3, hours);            // ...часы...
+	    fram.elementFram(fram.CURRENT_MINUTS, minutes);          // Записываем текущее время - минуты
+	    fram.elementFram(fram.CURRENT_HOURS, hours);            // ...часы...
 	    //Fram::fram_rd_massive();
 
 	    // Запись общего счетчика (два байта)
-	    Fram::elementFram(6, minCounterDec >> 8);    // Старший байт
-	    Fram::elementFram(7, (minCounterDec & 0xFF)); // Младший байт
+	    fram.elementFram(fram.H_BYTE_MINUTS_COUNTER, minCounterDec >> 8);    // Старший байт
+	    fram.elementFram(fram.L_BYTE_MINUTS_COUNTER, (minCounterDec & 0xFF)); // Младший байт
 
-	    Fram::elementFram(4, Button::dirTime);  // Направление счета времени
+	    fram.elementFram(fram.DIRECTION_TIME, button.dirTime);  // Направление счета времени
 
 	    // 3. Вывод в буфер USART (разложение на разряды)
 	    buf_485[1] = minutes % 10;   // Единицы минут

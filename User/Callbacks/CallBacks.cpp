@@ -35,8 +35,6 @@ const TimerManager::TimerMap TimerManager::timerMap[ ] = {
 	{ TIM4,  &TimerManager::handleTIM4  },
     { TIM5,  &TimerManager::handleTIM5  },
     { TIM6,  &TimerManager::handleTIM6  },
-    { TIM9,  &TimerManager::handleTIM9  },
-    { TIM12, &TimerManager::handleTIM12 },
 };
 
 // Обработчик прерывания таймера
@@ -55,57 +53,14 @@ void TimerManager::handleTimerInterrupt(TIM_HandleTypeDef* htim) {
 }
 // Реализация обработчиков
 //---------------------------------------------------------------------
+//void TimerManager::handleTIM2() {
+//	Button::isEncDone(true);
+//}
+
 void TimerManager::handleTIM2() {
-	Button::isEncDone(true);
+	Button button;
+	button.isEncDone(true);
 }
-
-void TimerManager::handleTIM9() {
-//    num = 1 - num;
-//    TIM7->CR1 = TIM7->CR1 + recount[num]; // Пуск/стоп TIM7
-//    if (num) {
-//        GPIOB->BSRR |= GPIO_PIN_15 << 16U; // Спикер выкл
-//    }
-//    numSound++;
-//    if (numSound == 8) {
-//        HAL_TIM_Base_Stop_IT(&htim7);
-//        HAL_TIM_Base_Stop_IT(&htim9);
-//        GPIOB->BSRR |= GPIO_PIN_15 << 16U; // Спикер выкл
-//        numSound = 0;
-//    }
-}
-//-------------------------Параметры звука переключения режимов и кнопки
-//void TimerManager::handleTIM7() {
-//    GPIOB->BSRR = ((GPIOB->ODR & GPIO_PIN_15) << 16U) | (~GPIOB->ODR & GPIO_PIN_15);
-//}
-
-void TimerManager::handleTIM12() {
-//    num = 1 - num;
-//    TIM7->CR1 = TIM7->CR1 + recount[num]; // Пуск/стоп TIM7
-//    //(num) && (GPIOB->BSRR |= GPIO_PIN_15 << 16U); // Спикер выкл
-//    if (num != 0) {
-//        GPIOB->BSRR = (uint32_t)GPIO_PIN_15 << 16U; // Спикер выкл
-//    }
-//    numSound = numSound + 1;
-////    (numSound == 2) && (HAL_TIM_Base_Stop_IT(&htim7),
-////                                          HAL_TIM_Base_Stop_IT(&htim12),
-////                                          GPIOB->BSRR |= GPIO_PIN_15 << 16U, // Спикер выкл
-////                                          numSound = 0);
-//    if (numSound == 2) {
-//        HAL_TIM_Base_Stop_IT(&htim7);
-//        HAL_TIM_Base_Stop_IT(&htim12);
-//        GPIOB->BSRR = (uint32_t)GPIO_PIN_15 << 16U; // Спикер выкл
-//        numSound = 0;
-//    }
-}
-//-----------------Время-------------------------------------------------
-//void TimerManager::handleTIM10() {
-//    SetTimer::totalTime += 1; // Общее время нагрева
-//    SetTimer::secondCounter += 1;
-//    (SetTimer::secondCounter == 60) &&
-//    		( SetTimer::minCounterInc += 1,
-//    		 SetTimer::minCounterDec -= 1,
-//			 SetTimer::secondCounter = 0);
-//}
 
 void TimerManager::handleTIM4() {
     // Используем явное присваивание для исключения предупреждений volatile
@@ -230,8 +185,6 @@ uint8_t EXTIManager::getRealStatus() {
 //---------------------Колбеки-----------------------------
 ADCManager adcManager;
 TimerManager timerManager;
-//extern EXTIManager extiManager;
-
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     adcManager.handleADCConversionComplete(hadc);
@@ -241,9 +194,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     timerManager.handleTimerInterrupt(htim);
 }
 //-----------------------------------------------------------------
+
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	Button button;
     if (htim->Instance == TIM2) {
-        Button::isEncDone(true);
+    	button.isEncDone(true);
     }
 }
 
