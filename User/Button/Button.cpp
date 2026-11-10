@@ -16,11 +16,12 @@
 #include "melody_gpio.hpp"
 //--------------------------------------------Сканируем нажатие-------------------------------------
 uint8_t Button::scanButton() {
+	Fram fram;
     // 1. Определяем события (на основе состояния с ПРОШЛОГО прохода)
     bool isButtonPressed = (gettingButton == 1 && flagButton == 0);
     bool isButtonReleased = (gettingButton == 0 && flagButton == 1);
     // 2. Логика счетчика (выполняется только ОДИН раз в момент фиксации нажатия)
-    if (Fram::framRdOneAddress(Fram::TARGET_MODE) && isButtonPressed) {
+    if (fram.framRdOneAddress(fram.TARGET_MODE) && isButtonPressed) {
         buttonRegim++;
     }
     if (buttonRegim > 2) {
@@ -36,8 +37,9 @@ uint8_t Button::scanButton() {
 }
 //-----------------------------------------1-й режим-------------------------------------------------
 void Button::buttonRegimOne() {
+	Fram fram;
 	if(flagOneButton == false){
-	uint8_t settedMode = Fram::elementFram(1);//Читаем установленный режим
+	uint8_t settedMode = fram.framRdOneAddress(fram.TARGET_MODE);//Читаем установленный режим
 	buf_485[WATCH_DOTS] = 0;//Останавливаем точки в часах{
 	MelodyPlayer::beep();           // Подаем звук нажатой кнопки
 	    flagSoundButton[0] = 1; // Устанавливаем флаг, что звук уже прозвучал
@@ -58,7 +60,8 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 }
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
-	    if(Fram::framRdOneAddress(Fram::TARGET_MODE) == pre) {
+	Fram fram;
+	    if(fram.framRdOneAddress(fram.TARGET_MODE) == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
 	    }else{
 	        executeMainRegimLogic();// В противном случае выполняем основную логику режима
@@ -85,6 +88,7 @@ bool Button::executeMainRegimLogic() {//Метод второго и следу�
 }
 //--------------3-й режим---------------------------------------------------------
 void Button::buttonRegimThree() {
+	Fram fram;
     Fram::elementFram(0, cntEncoder);
     TIM2->CNT = cntEncoder; // Пишем в счетчик энкодера и во FRAM
     Fram::fram_wr_massive(); // то, что было запомнено при установке температуры
@@ -108,10 +112,10 @@ void Button::buttonRegimThree() {
     Fram::elementFram(5, 1); //Включен режим регулирования
     buf_485[WATCH_DOTS] = 1; //Включаем точки в часах
     HAL_Delay(50);
-    Fram::framRdOneAddress(Fram::TARGET_TEMP);
+    fram.framRdOneAddress(fram.TARGET_TEMP);
     flagOneButton = false;//Включаем режим 1-го прохода 1-го режима кнопки
   if (Fram::elementFram(1) != 3 && Fram::elementFram(1) != 10) {//Если режим не set  и light
-      Heat::ajustHeat595(Fram::framRdOneAddress(Fram::TARGET_MODE));//запускаем нагрев в выбранном режиме
+      Heat::ajustHeat595(fram.framRdOneAddress(fram.TARGET_MODE));//запускаем нагрев в выбранном режиме
       buf_485[FRAME_WATCH] = 0;//стираем рамку вокруг часов
      // Protection::Stop();//Выключаем проверку тока в тенах
       GPIOB->BSRR = GPIO_PIN_9;
@@ -167,6 +171,7 @@ void Button::zeroing() {
 }
 //-------------------------------------------Задаем температуру-----------------
 uint8_t Button::encCount() {
+	Fram fram;
     uint8_t settedMode = Fram::elementFram(1); // Читаем установленный режим из Fram
     uint8_t byte0Fram = 0;
     // Главное условие: работаем, если режим не равен 1
@@ -178,7 +183,7 @@ uint8_t Button::encCount() {
             Fram::elementFram(0, cntEncoder); // Сохраняем во внутренний массив
             // Если мы не в режиме настройки "Set", обновляем данные для дисплея
             if (settedMode != set) {
-                byte0Fram = Fram::framRdOneAddress(Fram::TARGET_TEMP);
+                byte0Fram = fram.framRdOneAddress(Fram::TARGET_TEMP);
                 // Разложение числа на разряды для индикации
                 buf_485[TEMP_SET_1] = byte0Fram % 10;          // Единицы
                 buf_485[TEMP_SET_2] = (byte0Fram / 10) % 10;   // Десятки

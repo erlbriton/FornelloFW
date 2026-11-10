@@ -205,7 +205,7 @@ public:
 	}
 //-----------Читаем 1 адрес-----------------------------
 
-	static uint8_t framRdOneAddress(uint8_t address) {
+	    uint8_t framRdOneAddress(uint8_t address) {
 	    uint8_t i = 0;
 	    uint8_t byteFram = 0; // Защита от мусора
 	    Fram_CS_Down();

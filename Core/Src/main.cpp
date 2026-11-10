@@ -36,7 +36,6 @@
 #include "Button.hpp"
 #include "melody_gpio.hpp"
 #include "Protection.hpp"
-#include "Fram.hpp"
 #include "Protection.hpp"
 #include "PlateTemp.hpp"
 //#include "CallBacks.hpp"
@@ -200,7 +199,8 @@ int main(void)
 	Control control;
 	Protection protection;
 	FryModeLambda fryModeLambda;
-	if(Fram::framRdOneAddress(Fram::OPERATING_MODE)){
+	Fram fram;
+	if(fram.framRdOneAddress(Fram::OPERATING_MODE)){
 		Control::backInfo();//Восстанавливаем работу
 	}
 	else{//Продолжаем загрузку
@@ -213,15 +213,16 @@ GPIOB->BSRR = GPIO_PIN_9 << 16U;//Led
 	/* Infinite loop */
 	  /* USER CODE BEGIN WHILE */
 while (1) {
+	        uint8_t mode = fram.framRdOneAddress(Fram::TARGET_MODE);
 			uint8_t modeCookAveADC = control.readAdc(1);//Читаем задатчик режима
 			fryModeLambda.ModeSetLambda(modeCookAveADC);//Задаем режим приготовления (вызов лямбды по индексу)
 			static uint8_t oldModeCookAveADC = 0xFF;
 			if (modeCookAveADC != oldModeCookAveADC) {
-			Fram::elementFram(Fram::TARGET_MODE, modeCookAveADC);
+			Fram::elementFram(mode, modeCookAveADC);
 			oldModeCookAveADC = modeCookAveADC;// Обновляем "память" для следующего цикла
 			}
      		Button::encCount();//Задаем температуру
-     		if(Fram::framRdOneAddress(Fram::TARGET_MODE)){//Если режим не Off ...
+     		if(mode){//Если режим не Off ...
 				button.scanButton();//... сканируем кнопку и ...
 				button.executeButtonRegim(button.buttonRegim);//...выбираем режим кнопки
 			}

@@ -47,7 +47,7 @@ public:
 	static const uint16_t minTotalTime = 10800;	//Общее время работы более  120 градусов
 	static  void ajustHeat595(uint8_t numberRegimCook);
 	static void TransmitToTENs(uint8_t);
-	static uint8_t HysteresisTemp(); //Гистерезис температур в зависимости от режима
+	static uint8_t HysteresisTemp(uint8_t); //Гистерезис температур в зависимости от режима
 	inline static void all_off(){ //Просто делаем сброс HC595
 		GPIOC->BSRR |= GPIO_PIN_9 << 16U;   //MR Off
 		GPIOC->BSRR |= GPIO_PIN_6; //Latch on

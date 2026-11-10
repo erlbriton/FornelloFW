@@ -18,15 +18,17 @@
 //------------------------------Главный метод--------------------------------------------------
 void
 Heat::ajustHeat595(uint8_t numberRegimCook) {
+	Fram fram;
+	uint8_t currentTemp = fram.framRdOneAddress(Fram::TARGET_TEMP);
 	Button::encCount(); //Установка температуры в режиме приготовления
-	uint8_t differenceTemper = Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper; //Разность между установленной и текущей температурой
+	uint8_t differenceTemper = currentTemp - Control::ovenTemper; //Разность между установленной и текущей температурой
 //Определяем номер члена столбца(второй мерности) массива modeTable. То есть включать 1 ТЭН или 2.
-	bool hiLowMode = static_cast<bool>(differenceTemper > HysteresisTemp());
+	bool hiLowMode = static_cast<bool>(differenceTemper > HysteresisTemp(numberRegimCook));
 	dataTransmit = modeTable[numberRegimCook][hiLowMode]; //
 	if (!Heat::checkProtectionTriggers(dataTransmit)) { //Если защиты не сработали
 		TransmitToTENs(dataTransmit); //Посылаем на ТЭНЫ
 	}
-	if ((!Heat::soundPre) && (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) && ((Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper) <= HysteresisTemp())) {
+	if ((!Heat::soundPre) && (numberRegimCook == 1) && ((currentTemp - Control::ovenTemper) <= HysteresisTemp(numberRegimCook))) {
 		Heat::soundPre = true;
 		MelodyPlayer::play();// Включаем  "Подмосковные вечера"
 	}
@@ -35,26 +37,7 @@ Heat::ajustHeat595(uint8_t numberRegimCook) {
 
 //----------------------------Передаем на ТЭНЫ через SPI и HC595---------------------------
 
-void Heat::TransmitToTENs(uint8_t dataTransmit) {
-////Сравниваем свежую посылку(dataMode[0]) с уже включенными выходами HC595,
-////если равны - блокируем вывод Latch HC595. Таким образом включенные ТЭНы остаются без изменения
-////	uint8_t difference = dataModeOld - dataTransmit; //Разность между набором включенных выходов и новой  посылкой
-//	GPIO_PinState diff = (GPIO_PinState) 1; //difference; //true - разность есть, false - разности нет
-//	LL_SPI_TransmitData8(SPI3, dataTransmit);	//Передаем на тэны через HC595
-//	while (!LL_SPI_IsActiveFlag_TXE(SPI3)) {/*Ждем освобождения буфера передачи*/}
-//	HAL_GPIO_WritePin(Latch, diff);	//Latch. Если diff = true - передаем посылку, если diff = false - посылка не передаестся
-//	HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);	//Latch
-//	//------ Включаем или выключаем пламя на дисплее в зависимости от включенных тенов ----------------------------
-//	uint8_t statusTENs = extiManager.getRealStatus();
-////	 if(statusTENs == 7){//Если все 3 ТЭНа включены
-////	    buf_485[19] = 7;//Код ошибки
-////	    Button::regim1Button();
-////	 }
-//	buf_485[13] =    statusTENs & (1 << 0); //Пламя внизу
-//	buf_485[15] = !!(statusTENs & (1 << 1)); //Пламя вверху
-//	buf_485[14] = !!(statusTENs & (1 << 2)); //Пламя сбоку
-
-	 // Убрали volatile
+void Heat::TransmitToTENs(uint8_t dataTransmit){
 	    // 1. Сравниваем свежую посылку со старым состоянием
 	    // XOR даст 0, если байты одинаковые, и >0, если есть отличия
 	    uint8_t difference = dataModeOld ^ dataTransmit;
@@ -93,15 +76,18 @@ uint8_t Heat::getDataTransmit() {
 }	//Читаем состояние программной посылки на включение-выключение ТЭНов
 //------------------------Гистерезис температур в зависимости от режима-----------
 
-uint8_t Heat::HysteresisTemp() {
-	if (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) {
+uint8_t Heat::HysteresisTemp(uint8_t mode) {
+	//Fram fram;
+	//if (fram.framRdOneAddress(fram.TARGET_MODE) == 1) {
+	if(mode == 1){
 	        return tempPreOver;
 	    }
 	    return tempOtherOver;
 }
 //--------------------------------Управление внешним кулером---------------------
 void Heat::setOutCooler() {//    константа        если режим не "set"
-    if (Control::ovenTemper > safeTemperature && Fram::framRdOneAddress(Fram::TARGET_MODE) != 3) {
+	Fram fram;
+    if (Control::ovenTemper > safeTemperature && fram.framRdOneAddress(Fram::TARGET_MODE) != 3) {
         HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_SET);    // кулер ON
     } else {
         HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_RESET);  // кулер OFF
@@ -116,10 +102,10 @@ void Heat::soundMatch() {
 }
 //-------------------------------------------------------Проверка защит--------------
 bool Heat::checkProtectionTriggers(uint8_t& dataTransmit) { // Передача по ссылке!
-
+	Fram fram;
     // 1. Считываем уставку ОДИН раз за вызов функции.
     // Это защитит от двойного чтения, но данные всё равно будут "свежими" (Just-in-Time)
-    uint8_t currentTargetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);
+    uint8_t currentTargetTemp = fram.framRdOneAddress(Fram::TARGET_TEMP);
 
     // Правило 1: Открыта дверь и температура выше безопасной
     if (doorRd != 0 && Control::ovenTemper > safeTemperature) {
@@ -160,11 +146,5 @@ Heat::checkAndPlaySound() {
 	USART1->CR1 &= ~USART_CR1_UE; // Выключить USART1
 	USART2->CR1 &= ~USART_CR1_UE; // Выключить USART2
 	USART3->CR1 &= ~USART_CR1_UE; // Выключить USART3
-	//             MelodyPlayer::playPodmoskovnye();
-	// 5. Устанавливаем флаг, чтобы исключить повторный запуск
-	// Heat::soundPre = true;
-//                HAL_TIM_Base_Start(&htim3);
-//                HAL_TIM_Base_Start_IT(&htim6);
-//                HAL_TIM_Base_Start(&htim10);
-//                GPIOC->BSRR = GPIO_PIN_7 << 16U;//HC595 вкл
+    GPIOC->BSRR = GPIO_PIN_7 << 16U;//HC595 вкл
 }

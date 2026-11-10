@@ -14,9 +14,10 @@
 extern PlateTemp plateTempSensor;
 
 void FryModeLambda::modeCom(uint16_t averageAdc, uint8_t tempFirstMode) {//Метод, запускаемый при переключении режима
+	Fram fram;
 	firstRegim(tempFirstMode);//Устанавливаем первоначальный режим
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);//Запускаем энкодер в работу
-	buf_485[MODE] =  Fram::framRdOneAddress(Fram::TARGET_MODE);//Номер режима
+	buf_485[MODE] =  fram.framRdOneAddress(Fram::TARGET_MODE);//Номер режима
 }
 //-----------------------------------Начальный режим---------------------------------------
 void FryModeLambda::firstRegim(uint8_t tempFirst) {
@@ -45,7 +46,8 @@ void FryModeLambda::firstRegim(uint8_t tempFirst) {
 }
 //--------------------------/Записываем номер включенного режима---------------------------------------------
 void FryModeLambda::modeWrite(uint8_t modeCookAveADC) {
-	settedMode = Fram::framRdOneAddress(Fram::TARGET_MODE);
+	Fram fram;
+	settedMode = fram.framRdOneAddress(Fram::TARGET_MODE);
 	buf_485[CHECK_FIRST] = 151;
 	buf_485[CHECK_LAST] = 151;
 	buf_485[MODE] = settedMode;

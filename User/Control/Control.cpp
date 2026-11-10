@@ -55,21 +55,16 @@ uint8_t Control::readAdc(uint8_t numSamples) {
 }
 //---------------------------Восстановление информации после сброса или отключения------------------------
 void Control::backInfo() {
-	//Fram::fram_rd_massive(); //Читаем сохраненную информацию
-	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-	//uint8_t temperFornoBack;// = TIM2->CNT = Fram::elementFram(0); //Восстанавливаем заданную температуру
-	//uint8_t val = Fram::elementFram(0);
-	//TIM2->CNT = val;
-	//uint8_t temperFornoBack = framRd[0];
-	uint8_t targetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);
+	Fram fram;
+	uint8_t targetTemp = fram.framRdOneAddress(fram.TARGET_TEMP);
 	TIM2->CNT = targetTemp;//Fram::framRdOneAddress(Fram::TARGET_TEMP);
 	//temperFornoBack = val;
 	//uint8_t modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
-	uint8_t modeBack = Fram::framRdOneAddress(Fram::TARGET_MODE); //Восстанавливаем номер режима приготовления
+	uint8_t modeBack = fram.framRdOneAddress(fram.TARGET_MODE); //Восстанавливаем номер режима приготовления
 	//Button::dirTime = Fram::elementFram(4); //Направление счета времени
-	Button::dirTime = Fram::framRdOneAddress(Fram::DIRECTION_TIME); //Направление счета времени
+	Button::dirTime = fram.framRdOneAddress(fram.DIRECTION_TIME); //Направление счета времени
 	//SetTimer::minCounterDec = (Fram::elementFram(6) << 8) | Fram::elementFram(7);//Соединяем старший и младший байты счетчика минут
-	SetTimer::minCounterDec = (Fram::framRdOneAddress(Fram::H_BYTE_MINUTS_COUNTER) << 8 | (Fram::framRdOneAddress(Fram::L_BYTE_MINUTS_COUNTER)));//Соединяем старший и младший байты счетчика минут
+	SetTimer::minCounterDec = (fram.framRdOneAddress(fram.H_BYTE_MINUTS_COUNTER) << 8 | (fram.framRdOneAddress(fram.L_BYTE_MINUTS_COUNTER)));//Соединяем старший и младший байты счетчика минут
 	SetTimer::minCounterInc = SetTimer::minCounterDec;//Счетчик инкремента и декремента времени здесь равны
 	buf_485[0] = buf_485[FRAME_WATCH] = 151; //Проверочный код посылки
 //#################################Для калибровки###################################################
