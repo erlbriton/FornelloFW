@@ -54,6 +54,9 @@ public:
 		GPIOC->BSRR |= GPIO_PIN_6 << 16U; //Latch off
 		GPIOC->BSRR |= GPIO_PIN_9; //MR On
 	}
+    static void setSoundPre(bool);// Сеттер для bool soundPre
+    static bool getSoundPre();// Геттер для bool soundPre
+
 	static void setOutCooler(); //Управление внешним кулером---------------------
 	static void soundMatch(); //Подача звука при предварительном нагреве
 //---------------------Делаем inline метод--------------------------------------

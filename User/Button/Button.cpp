@@ -16,9 +16,6 @@
 #include "melody_gpio.hpp"
 //--------------------------------------------Сканируем нажатие-------------------------------------
 uint8_t Button::scanButton() {
-    // 1. Читаем внешние данные
-//	auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-//    bool isCookingMode = (framRd[1] !=0);// Проверяем, что режим не 0
     // 2. Определяем события (на основе состояния с ПРОШЛОГО прохода)
     bool isButtonPressed = (gettingButton == 1 && flagButton == 0);
     bool isButtonReleased = (gettingButton == 0 && flagButton == 1);
@@ -60,17 +57,7 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 	HAL_TIM_Base_Stop_IT(&htim4);//Останавливаем часы
 	flagOneButton = true;
 	Fram::elementFram(5, 0);//Снимаем флаг рабочего режима
-//	if(!Protection::protection_is_active){
-//	    Protection::Start();//Запускаем проверку тока в тенах
-//	}
-}
-//	if (Protection::GetState() == SIGNAL_PRESENT) {//Реле залипло!
-//		GPIOC->BSRR = GPIO_PIN_13;//Включить реле выключения автомата
-//		HAL_Delay(2000);
-//		GPIOC->BSRR = GPIO_PIN_13<< 16U;//Выключить реле выключения автомата
-//		GPIOB->BSRR = GPIO_PIN_9 << 16U;
-//		GPIOA->BSRR = GPIO_PIN_12;//Свет
-//	    }
+         }
 }
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
@@ -155,21 +142,13 @@ bool Button::executeButtonRegim(uint8_t index)  {
 }
 //--------------------------------------Zeroing------------------------------------------------------
 void Button::zeroing() {
-	SetTimer::number_Iterator_Increment = false;
-	SetTimer::number_Iterator_Decrement = false;
+	SetTimer::resetTimers();
 	firstCall = true;
-	Heat::soundPre = false;
+	dirTime = false;
 	cntEncoder = 0;
-	SetTimer::hoursSet = 0;
-	SetTimer::minutesSet = 0;
-	SetTimer::memTime = 0;
+	Heat::setSoundPre(false);
 	Heat::all_off(); //Выключение всего
-	//SetTimer::number_Iterator_Increment = false;
-	Button::dirTime = false;
-	SetTimer::secondCounter = 0;
-	SetTimer::minCounterInc = 0;
-	SetTimer::minCounterDec = 0;
-	SetTimer::totalTime = 0;//Общее время нагрева
+
 	FryModeLambda::sondFlagSetMode = false;
 	Heat::dataModeOld = 0xFF;
 	//--------------------Выводим в дисплей-------------------------------------------

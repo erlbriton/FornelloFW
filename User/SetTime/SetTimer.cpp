@@ -66,3 +66,20 @@ void SetTimer::DecrementCookTime() {
 	    buf_485[1] = 0;              // Обнуляем индикацию
 	}
 }
+
+//------------------------- Сброс таймеров-----------------------------------------
+void SetTimer::resetTimers(){
+	number_Iterator_Increment = false;
+	number_Iterator_Decrement = false;
+	hoursSet = 0;
+	minutesSet = 0;
+	memTime = 0;
+	secondCounter = 0;
+	minCounterInc = 0;
+	minCounterDec = 0;
+	totalTime = 0;
+}
+
+
+
+

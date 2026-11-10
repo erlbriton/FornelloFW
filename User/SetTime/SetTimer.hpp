@@ -30,6 +30,8 @@ public:
 	static inline uint32_t minutesSet = 0; //Установленные минуты
 	static inline uint32_t memTime = 0; //Запоминаем время, выставленное энкодером
 
+	static void resetTimers();//Сброс таймеров
+
 	static uint16_t setTime() {//Задаем время приготовления
 		hoursSet = TIM2->CNT / 60;     //Часы
 		minutesSet = TIM2->CNT % 60;     //минуты

@@ -26,8 +26,8 @@ Heat::ajustHeat595(uint8_t numberRegimCook) {
 	if (!Heat::checkProtectionTriggers(dataTransmit)) { //Если защиты не сработали
 		TransmitToTENs(dataTransmit); //Посылаем на ТЭНЫ
 	}
-	if ((!Heat::soundPre) && (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) && ((Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper) <= HysteresisTemp())) {
-		Heat::soundPre = true;
+	if ((!Heat::getSoundPre()) && (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) && ((Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper) <= HysteresisTemp())) {
+		Heat::setSoundPre(true);
 		MelodyPlayer::play();// Включаем  "Подмосковные вечера"
 	}
 	SetTimer::TimeCook(Button::dirTime);
@@ -36,25 +36,6 @@ Heat::ajustHeat595(uint8_t numberRegimCook) {
 //----------------------------Передаем на ТЭНЫ через SPI и HC595---------------------------
 
 void Heat::TransmitToTENs(uint8_t dataTransmit) {
-////Сравниваем свежую посылку(dataMode[0]) с уже включенными выходами HC595,
-////если равны - блокируем вывод Latch HC595. Таким образом включенные ТЭНы остаются без изменения
-////	uint8_t difference = dataModeOld - dataTransmit; //Разность между набором включенных выходов и новой  посылкой
-//	GPIO_PinState diff = (GPIO_PinState) 1; //difference; //true - разность есть, false - разности нет
-//	LL_SPI_TransmitData8(SPI3, dataTransmit);	//Передаем на тэны через HC595
-//	while (!LL_SPI_IsActiveFlag_TXE(SPI3)) {/*Ждем освобождения буфера передачи*/}
-//	HAL_GPIO_WritePin(Latch, diff);	//Latch. Если diff = true - передаем посылку, если diff = false - посылка не передаестся
-//	HAL_GPIO_WritePin(Latch, GPIO_PIN_RESET);	//Latch
-//	//------ Включаем или выключаем пламя на дисплее в зависимости от включенных тенов ----------------------------
-//	uint8_t statusTENs = extiManager.getRealStatus();
-////	 if(statusTENs == 7){//Если все 3 ТЭНа включены
-////	    buf_485[19] = 7;//Код ошибки
-////	    Button::regim1Button();
-////	 }
-//	buf_485[13] =    statusTENs & (1 << 0); //Пламя внизу
-//	buf_485[15] = !!(statusTENs & (1 << 1)); //Пламя вверху
-//	buf_485[14] = !!(statusTENs & (1 << 2)); //Пламя сбоку
-
-	 // Убрали volatile
 	    // 1. Сравниваем свежую посылку со старым состоянием
 	    // XOR даст 0, если байты одинаковые, и >0, если есть отличия
 	    uint8_t difference = dataModeOld ^ dataTransmit;
@@ -150,8 +131,8 @@ bool Heat::checkProtectionTriggers(uint8_t& dataTransmit) { // Передача 
     return false; // Защита не сработала
 }
 //------------------------------Подаем сигнал предварительного нагрева-------------------------------
-void
-Heat::checkAndPlaySound() {
+
+void Heat::checkAndPlaySound() {
 	// 4. Если все условия сошлись, запускаем мелодию
 	GPIOC->BSRR = GPIO_PIN_7;	//HC595 выкл
 	HAL_TIM_Base_Stop_IT(&htim5);
@@ -160,11 +141,16 @@ Heat::checkAndPlaySound() {
 	USART1->CR1 &= ~USART_CR1_UE; // Выключить USART1
 	USART2->CR1 &= ~USART_CR1_UE; // Выключить USART2
 	USART3->CR1 &= ~USART_CR1_UE; // Выключить USART3
-	//             MelodyPlayer::playPodmoskovnye();
-	// 5. Устанавливаем флаг, чтобы исключить повторный запуск
-	// Heat::soundPre = true;
-//                HAL_TIM_Base_Start(&htim3);
-//                HAL_TIM_Base_Start_IT(&htim6);
-//                HAL_TIM_Base_Start(&htim10);
-//                GPIOC->BSRR = GPIO_PIN_7 << 16U;//HC595 вкл
 }
+
+void Heat::setSoundPre(bool setSoundPre){
+		soundPre = setSoundPre;
+	}
+
+bool Heat::getSoundPre(){
+	return soundPre;
+}
+
+
+
+
