@@ -25,7 +25,7 @@ private:
 	static inline uint32_t adcRaw = 0; //Сырые данные ADC задатчика режима
 
 public:
-	inline static uint16_t ovenTemper = 0;
+	inline static uint8_t ovenTemper = 0;
 	inline static uint32_t adcTemp[2] = {0, };
 	static uint32_t bakeTemper();
 	static uint8_t readAdc(uint8_t); //Читаем задатчик режима

@@ -50,7 +50,6 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
  if(isSettedMode){
 	 buttonRegim = 2;
  }
-//isSettedMode && (buttonRegim = 2);//Если режим "light" или  "set" - то buttonRegim  сразу = 2(время выставлять не нужно)
 	zeroing(); //Обнуляем все необходимые флаги
 	GPIOC->BSRR |= GPIO_PIN_8;//Включаем свет
 	pass3Button = false; //Обнуляем флаг прохода режима 3 кнопки(для режима "PRE")
@@ -61,9 +60,6 @@ bool isSettedMode = (settedMode == set || settedMode == light);//Если реж
 }
 //-----------------------Второй режим кнопки----------------------------
 void Button::buttonRegimTwo() {//Проверка выключенного режима Pre
-	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-	//uint8_t settedMode = Fram::elementFram(1);
-	//MelodyPlayer::beep();
 	    if(Fram::framRdOneAddress(Fram::TARGET_MODE) == pre) {
 	        buttonRegim = 2;// Если режим "pre", сразу переходим ко второму состоянию кнопки
 	    }else{
@@ -113,8 +109,6 @@ void Button::buttonRegimThree() {
     }
     Fram::elementFram(5, 1); //Включен режим регулирования
     buf_485[WATCH_DOTS] = 1; //Включаем точки в часах
-    HAL_Delay(50);
-    Fram::framRdOneAddress(Fram::TARGET_TEMP);
     flagOneButton = false;//Включаем режим 1-го прохода 1-го режима кнопки
   if (Fram::elementFram(1) != 3 && Fram::elementFram(1) != 10) {//Если режим не set  и light
       Heat::ajustHeat595(Fram::framRdOneAddress(Fram::TARGET_MODE));//запускаем нагрев в выбранном режиме
@@ -135,7 +129,7 @@ const std::array<std::function<void(Button*)>, 3> Button::arrButtonRegim = {
 };
 //-------------------------------------Выбор режима кнопки-------------------------------------------
 bool Button::executeButtonRegim(uint8_t index)  {
-    if (index >= 0 && index < arrButtonRegim.size()) {
+    if (index < arrButtonRegim.size()) {
         arrButtonRegim[index](this); //Передаём `this` в лямбду
     }
     return true;
@@ -150,7 +144,7 @@ void Button::zeroing() {
 	Heat::all_off(); //Выключение всего
 
 	FryModeLambda::sondFlagSetMode = false;
-	Heat::dataModeOld = 0xFF;
+	Heat::setDataModeOld(0xFF);
 	//--------------------Выводим в дисплей-------------------------------------------
 //#################################Для калибровки###################################################
 //	buf_485[1] = 0; ////Единицы минут
@@ -173,8 +167,6 @@ uint8_t Button::encCount() {
         // Проверяем, изменились ли данные и был ли поворот (флаг encDone)
         if (encMemory != cntEncoder && encDone == true) {
             encMemory = cntEncoder;        // Запоминаем новое значение
-            Fram::elementFram(0, cntEncoder); // Сохраняем во внутренний массив
-           // Fram::fram_rd_massive();       // Читаем массив обратно
             // Если мы не в режиме настройки "Set", обновляем данные для дисплея
             if (settedMode != set) {
                 byte0Fram = Fram::framRdOneAddress(Fram::TARGET_TEMP);

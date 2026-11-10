@@ -19,14 +19,14 @@
 void
 Heat::ajustHeat595(uint8_t numberRegimCook) {
 	Button::encCount(); //Установка температуры в режиме приготовления
-	uint8_t differenceTemper = Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper; //Разность между установленной и текущей температурой
+	int8_t differenceTemper = Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper; //Разность между установленной и текущей температурой////////////////////////////
 //Определяем номер члена столбца(второй мерности) массива modeTable. То есть включать 1 ТЭН или 2.
 	bool hiLowMode = static_cast<bool>(differenceTemper > HysteresisTemp());
 	dataTransmit = modeTable[numberRegimCook][hiLowMode]; //
 	if (!Heat::checkProtectionTriggers(dataTransmit)) { //Если защиты не сработали
 		TransmitToTENs(dataTransmit); //Посылаем на ТЭНЫ
 	}
-	if ((!Heat::getSoundPre()) && (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) && ((Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper) <= HysteresisTemp())) {
+	if ((!Heat::getSoundPre()) && (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) && ((Fram::framRdOneAddress(Fram::TARGET_TEMP) - Control::ovenTemper) <= HysteresisTemp())) {/////////////////
 		Heat::setSoundPre(true);
 		MelodyPlayer::play();// Включаем  "Подмосковные вечера"
 	}
@@ -75,14 +75,14 @@ uint8_t Heat::getDataTransmit() {
 //------------------------Гистерезис температур в зависимости от режима-----------
 
 uint8_t Heat::HysteresisTemp() {
-	if (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) {
+	if (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) {//////////////////////////////////////////////////
 	        return tempPreOver;
 	    }
 	    return tempOtherOver;
 }
 //--------------------------------Управление внешним кулером---------------------
 void Heat::setOutCooler() {//    константа        если режим не "set"
-    if (Control::ovenTemper > safeTemperature && Fram::framRdOneAddress(Fram::TARGET_MODE) != 3) {
+    if (Control::ovenTemper > safeTemperature && Fram::framRdOneAddress(Fram::TARGET_MODE) != 3) {///////////////////////////////////
         HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_SET);    // кулер ON
     } else {
         HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_RESET);  // кулер OFF
@@ -100,7 +100,7 @@ bool Heat::checkProtectionTriggers(uint8_t& dataTransmit) { // Передача 
 
     // 1. Считываем уставку ОДИН раз за вызов функции.
     // Это защитит от двойного чтения, но данные всё равно будут "свежими" (Just-in-Time)
-    uint8_t currentTargetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);
+    uint8_t currentTargetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);/////////////////////////////////////////////////
 
     // Правило 1: Открыта дверь и температура выше безопасной
     if (doorRd != 0 && Control::ovenTemper > safeTemperature) {
@@ -130,18 +130,6 @@ bool Heat::checkProtectionTriggers(uint8_t& dataTransmit) { // Передача 
 
     return false; // Защита не сработала
 }
-//------------------------------Подаем сигнал предварительного нагрева-------------------------------
-
-void Heat::checkAndPlaySound() {
-	// 4. Если все условия сошлись, запускаем мелодию
-	GPIOC->BSRR = GPIO_PIN_7;	//HC595 выкл
-	HAL_TIM_Base_Stop_IT(&htim5);
-	HAL_TIM_Base_Stop_IT(&htim6);
-	HAL_TIM_Base_Stop(&htim4);
-	USART1->CR1 &= ~USART_CR1_UE; // Выключить USART1
-	USART2->CR1 &= ~USART_CR1_UE; // Выключить USART2
-	USART3->CR1 &= ~USART_CR1_UE; // Выключить USART3
-}
 
 void Heat::setSoundPre(bool setSoundPre){
 		soundPre = setSoundPre;
@@ -151,6 +139,11 @@ bool Heat::getSoundPre(){
 	return soundPre;
 }
 
-
+    void Heat::setDataModeOld(uint8_t setdataModeOld){//Сеттер для dataModeOld
+    	dataModeOld = setdataModeOld;
+    }
+    uint8_t Heat::getDataModeOld(){//Геттер для dataModeOld
+    	return dataModeOld;
+    }
 
 

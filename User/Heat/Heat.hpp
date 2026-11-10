@@ -56,6 +56,8 @@ public:
 	}
     static void setSoundPre(bool);// Сеттер для bool soundPre
     static bool getSoundPre();// Геттер для bool soundPre
+    static void setDataModeOld(uint8_t);//Сеттер для dataModeOld
+    static uint8_t getDataModeOld();//Геттер для dataModeOld
 
 	static void setOutCooler(); //Управление внешним кулером---------------------
 	static void soundMatch(); //Подача звука при предварительном нагреве

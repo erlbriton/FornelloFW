@@ -25,51 +25,88 @@ uint32_t Control::bakeTemper() {//Измеряем температуру в д�
 	(ovenTemper < 15) && (ovenTemper = 15);//На время наладки
 	buf_485[CHECK_FIRST] = 151;
 	buf_485[CHECK_LAST] = 151;
-	buf_485[TEMP_1] = ovenTemper % 100 % 10; //Единицы
+	buf_485[TEMP_1] = ovenTemper % 10; //Единицы
 	buf_485[TEMP_2] = ovenTemper % 100 / 10; //Десятки
 	buf_485[TEMP_3] = ovenTemper / 100; //Сотни
 	//HAL_UART_Transmit_IT(&huart3, buf_485, 20);
 	return ovenTemper;
 }
 //Измеряем АЦП канала "РЕЖИМ" 3 раза или сколько нужно раз(одного явно мало)
+//uint8_t Control::readAdc(uint8_t numSamples) {
+//	uint8_t currentMode = rawADC[averageAdc];
+//	static uint8_t oldMode = 0xFF;
+//    uint32_t sum = 0;
+//    for (uint8_t i = 0; i < numSamples; i++) {
+//    	HAL_ADC_Start(&hadc2);
+//        ADC2->CR2 |= ADC_CR2_SWSTART; // Запуск преобразования АЦП
+//        uint32_t startTime = HAL_GetTick();// Ожидание завершения преобразования с таймаутом
+//        while (!(ADC2->SR & ADC_SR_EOC)) {
+//            if ((HAL_GetTick() - startTime) > 10) { // 10 мс таймаут
+//                return 0; // Ошибка
+//            }
+//        }
+//        uint16_t adcRaw = ADC2->DR; // Чтение результата преобразования
+//        sum += adcRaw; // Суммирование результатов
+//    }
+//    uint16_t averageAdc = sum / numSamples; // Вычисление среднего значения
+//    if (averageAdc >= sizeof(rawADC) / sizeof(rawADC[0])) {// Проверяем, не выходим ли за границы массива rawADC
+//        return 0; // Ошибка
+//    }
+////     Fram::elementFram(Fram::TARGET_MODE, rawADC[averageAdc]);//Записываем во Fram по адресу "1" номер режима
+//    if (currentMode != oldMode) { // Пишем только если реально переключили ручку
+//        Fram::elementFram(Fram::TARGET_MODE, currentMode);
+//        oldMode = currentMode;
+//    }
+//    return rawADC[averageAdc]; // Возвращаем номер режима
+//}
+
 uint8_t Control::readAdc(uint8_t numSamples) {
     uint32_t sum = 0;
+
     for (uint8_t i = 0; i < numSamples; i++) {
-    	HAL_ADC_Start(&hadc2);
+        HAL_ADC_Start(&hadc2);
         ADC2->CR2 |= ADC_CR2_SWSTART; // Запуск преобразования АЦП
-        uint32_t startTime = HAL_GetTick();// Ожидание завершения преобразования с таймаутом
+
+        uint32_t startTime = HAL_GetTick(); // Ожидание завершения с таймаутом
         while (!(ADC2->SR & ADC_SR_EOC)) {
             if ((HAL_GetTick() - startTime) > 10) { // 10 мс таймаут
                 return 0; // Ошибка
             }
         }
-        uint16_t adcRaw = ADC2->DR; // Чтение результата преобразования
-        sum += adcRaw; // Суммирование результатов
+        uint16_t adcRaw = ADC2->DR; // Чтение результата
+        sum += adcRaw; // Суммирование
     }
-    uint16_t averageAdc = sum / numSamples; // Вычисление среднего значения
-    if (averageAdc >= sizeof(rawADC) / sizeof(rawADC[0])) {// Проверяем, не выходим ли за границы массива rawADC
+
+    uint16_t averageAdc = sum / numSamples; // Вычисление среднего
+
+    // Проверка границ (std::array имеет метод .size() — используем его!)
+    if (averageAdc >= rawADC.size()) {
         return 0; // Ошибка
     }
-     Fram::elementFram(Fram::TARGET_MODE, rawADC[averageAdc]);//Записываем во Fram по адресу "1" номер режима
-    return rawADC[averageAdc]; // Возвращаем номер режима
+
+    // 🎯 А ВОТ ТЕПЕРЬ МЫ МОЖЕМ ПОЛУЧИТЬ РЕЖИМ
+    uint8_t currentMode = rawADC[averageAdc];
+
+    // 🎯 И ТЕПЕРЬ ПРОВЕРЯЕМ, НУЖНО ЛИ ПИСАТЬ ВО FRAM
+    static uint8_t oldMode = 0xFF; // Храним прошлый режим
+
+    if (currentMode != oldMode) {
+        Fram::elementFram(Fram::TARGET_MODE, currentMode);
+        oldMode = currentMode;
+    }
+
+    return currentMode; // Возвращаем номер режима
 }
+
 //---------------------------Восстановление информации после сброса или отключения------------------------
 void Control::backInfo() {
-	//Fram::fram_rd_massive(); //Читаем сохраненную информацию
-	//auto framRd = Fram::fram_rd_massive();//Читаем  Fram
-	//uint8_t temperFornoBack;// = TIM2->CNT = Fram::elementFram(0); //Восстанавливаем заданную температуру
-	//uint8_t val = Fram::elementFram(0);
-	//TIM2->CNT = val;
-	//uint8_t temperFornoBack = framRd[0];
+	Fram fram;
 	uint8_t targetTemp = Fram::framRdOneAddress(Fram::TARGET_TEMP);
 	TIM2->CNT = targetTemp;//Fram::framRdOneAddress(Fram::TARGET_TEMP);
-	//temperFornoBack = val;
-	//uint8_t modeBack = Fram::elementFram(1); //Восстанавливаем номер режима приготовления
-	uint8_t modeBack = Fram::framRdOneAddress(Fram::TARGET_MODE); //Восстанавливаем номер режима приготовления
-	//Button::dirTime = Fram::elementFram(4); //Направление счета времени
-	Button::dirTime = Fram::framRdOneAddress(Fram::DIRECTION_TIME); //Направление счета времени
+	uint8_t modeBack = fram.framRdOneAddress(Fram::TARGET_MODE); //Восстанавливаем номер режима приготовления
+	Button::dirTime = fram.framRdOneAddress(Fram::DIRECTION_TIME); //Направление счета времени
 	//SetTimer::minCounterDec = (Fram::elementFram(6) << 8) | Fram::elementFram(7);//Соединяем старший и младший байты счетчика минут
-	SetTimer::minCounterDec = (Fram::framRdOneAddress(Fram::H_BYTE_MINUTS_COUNTER) << 8 | (Fram::framRdOneAddress(Fram::L_BYTE_MINUTS_COUNTER)));//Соединяем старший и младший байты счетчика минут
+	SetTimer::minCounterDec = (fram.framRdOneAddress(Fram::H_BYTE_MINUTS_COUNTER) << 8 | (Fram::framRdOneAddress(Fram::L_BYTE_MINUTS_COUNTER)));//Соединяем старший и младший байты счетчика минут
 	SetTimer::minCounterInc = SetTimer::minCounterDec;//Счетчик инкремента и декремента времени здесь равны
 	buf_485[0] = buf_485[FRAME_WATCH] = 151; //Проверочный код посылки
 //#################################Для калибровки###################################################
