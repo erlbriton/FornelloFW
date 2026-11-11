@@ -38,6 +38,7 @@ public:
 	bool getEncDone() const;//Читаем флаг прокрутки энкодера
 	void setEncDone(bool);//Устанавливаем флаг прокрутки энкодера
 	static bool setButtonRegim(uint8_t newButtonRegim);
+	static bool setflagOneButton(bool state);//Установка флага flagOneButton
 	//---------------------------------------------------------------------------------------------------
 	static uint8_t encCount();
 	static uint8_t scanButton();

@@ -7,6 +7,7 @@
 
 #ifndef MODE_FRYMODE_HPP_
 #define MODE_FRYMODE_HPP_
+
 #include "main.h"
 #include "flashdata.hpp"
 #include "tim.h"
@@ -18,10 +19,6 @@
 #include <array>
 #include <cstdint>
 
-//extern const std::array<uint8_t, 4096> rawADC;
-
-//class Heat;
-//class FryModePoly;
 
 class FryModeLambda {
 public:
@@ -40,5 +37,8 @@ public:
 
 private:
 	static const std::array<std::function<void(FryModeLambda*)>, 6> modeCookLambdaArray;// Массив лямбда-функций
+
+//	static void startEncoder();
+//	static void stopEncoder();
 };
 #endif /* MODE_FRYMODE_HPP_ */

@@ -17,32 +17,31 @@ void FryModeLambda::modeCom(uint16_t averageAdc, uint8_t tempFirstMode) {//Ме�
 }
 //-----------------------------------Начальный режим---------------------------------------
 void FryModeLambda::firstRegim(uint8_t tempFirst) {
-	Heat::spOn();//Писк
-	Button::flagOneButton = false;//Флаг первого режима кнопки
+	Button::setflagOneButton(false);//Флаг первого режима кнопки
 	TIM2->CNT = 0;
 	uint8_t indexesToClear[ ] = {1, 2, 3, 4, 12, 13, 14, 15, 18};//Стираем рамку вокруг часов, точки в часах, все пламя
 	for (uint8_t i = 0; i < sizeof(indexesToClear)/sizeof(indexesToClear[0]); ++i) {
 	    buf_485[indexesToClear[ i ] ] = 0;
 	}
 	buf_485[CHECK_FIRST] = buf_485[20] = 151; //Проверочный код посылки
-	buf_485[TEMP_SET_1] = tempFirst % 100 % 10; //Единицы)
+	buf_485[TEMP_SET_1] = tempFirst % 10; //Единицы)
 	buf_485[TEMP_SET_2] = tempFirst % 100 / 10; //Десятки
 	buf_485[TEMP_SET_3] = tempFirst / 100;     //Сотни
 	Button::regim1Button(); //Включаем 1-й режим button
 	//----------Сбрасываем все выходы у HC595---------------------
+	//Heat::all_off();
 	GPIOA->BSRR |= GPIO_PIN_8 << 16U;	//MR off
-	GPIOC->BSRR |= GPIO_PIN_6; //Latch on
-	GPIOC->BSRR |= GPIO_PIN_6 << 16U; //Latch off
-	GPIOA->BSRR |= GPIO_PIN_8; //MR on
-	//-----------------------------------------------------------
+		GPIOC->BSRR |= GPIO_PIN_6; //Latch on
+		GPIOC->BSRR |= GPIO_PIN_6 << 16U; //Latch off
+		GPIOA->BSRR |= GPIO_PIN_8; //MR on
 	Fram::elementFram(Fram::OPERATING_MODE, 0);//Сброса во время работы не было
 	Fram::elementFram(Fram::TARGET_TEMP, tempFirst);//Записываем во фрам начальную температуру
 	TIM2->CNT = tempFirst; //Записываем начальную температуру в энкодер
-	Heat::soundPre = false;
+	Heat::setSoundPre(false);
 }
 //--------------------------/Записываем номер включенного режима---------------------------------------------
 void FryModeLambda::modeWrite(uint8_t modeCookAveADC) {
-	settedMode = Fram::framRdOneAddress(Fram::TARGET_MODE);
+	settedMode = modeCookAveADC;
 	buf_485[CHECK_FIRST] = 151;
 	buf_485[CHECK_LAST] = 151;
 	buf_485[MODE] = settedMode;
@@ -59,6 +58,7 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 //----------------------------------------------------1 - Pre----------------------------------------------------------------------------
 		[ ](FryModeLambda* fryModeLambda) {
 			fryModeLambda->firstRegim(firstTemp);
+			//startEncoder();
 			HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
 			HAL_TIM_Base_Stop_IT(&htim4);
 			buf_485[MODE] = settedMode; // Pre
@@ -66,6 +66,7 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 		//---------------------------------------------2 - Dry----------------------------------------------------------------------------------
 		[ ](FryModeLambda* fryModeLambda) {
 			fryModeLambda->modeCom(settedMode, fryModeLambda->firstTempDry);
+			//startEncoder();
 			HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
 		},
 		//----------------------------------------------3 - Set----------------------------------------------------------------------------------
@@ -75,8 +76,8 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 			sondFlagSetMode = true;
 			}
 			Heat::all_off(); //Выключаем все
-			//HAL_GPIO_WritePin(fanOut, GPIO_PIN_RESET);
 			GPIOA->BSRR |= GPIO_PIN_11 << 16U;
+			//stopEncoder();
 			HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_1);
 			HAL_TIM_Base_Stop_IT(&htim4);
 			plateTemp();
@@ -84,6 +85,7 @@ const std::array<std::function<void(FryModeLambda*)>, 6> FryModeLambda::modeCook
 		//-------------------------4 - Grill---Brow---Fan---Ff---Ord---Cook-----------------------------------------------
 		[ ](FryModeLambda *fryModeLambda) {
 			fryModeLambda->modeCom(settedMode, fryModeLambda->firstTemp);
+			//startEncoder();
 			HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
 			buf_485[MODE] = settedMode;
 		},
@@ -109,3 +111,12 @@ void FryModeLambda::ModeSetLambda(std::function<void(FryModeLambda*)> lambda, ui
 	lambda(this); // Передаем указатель на текущий объект
 	modeWrite(modeCookNew);
 }
+
+//void FryModeLambda::startEncoder(){
+//	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1);
+//}
+//
+//void FryModeLambda::stopEncoder(){
+//	HAL_TIM_Encoder_Stop(&htim2, TIM_CHANNEL_1);
+//}
+

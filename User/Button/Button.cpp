@@ -190,4 +190,8 @@ bool Button::setButtonRegim(uint8_t newButtonRegim){//Сеттер buttonRegim
 	return true;
 }
 
+bool Button::setflagOneButton(bool state){
+	flagOneButton = state;
+}
+
 
