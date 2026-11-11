@@ -159,7 +159,7 @@ void Button::zeroing() {
 }
 //-------------------------------------------Задаем температуру-----------------
 uint8_t Button::encCount() {
-    uint8_t settedMode = Fram::elementFram(1); // Читаем установленный режим из Fram
+    uint8_t settedMode = Fram::framRdOneAddress(Fram::TARGET_MODE); // Читаем установленный режим из Fram
     uint8_t byte0Fram = 0;
     // Главное условие: работаем, если режим не равен 1
     if (buttonRegim != 1) {
@@ -167,6 +167,7 @@ uint8_t Button::encCount() {
         // Проверяем, изменились ли данные и был ли поворот (флаг encDone)
         if (encMemory != cntEncoder && encDone == true) {
             encMemory = cntEncoder;        // Запоминаем новое значение
+            Fram::elementFram(Fram::TARGET_TEMP, encMemory);
             // Если мы не в режиме настройки "Set", обновляем данные для дисплея
             if (settedMode != set) {
                 byte0Fram = Fram::framRdOneAddress(Fram::TARGET_TEMP);

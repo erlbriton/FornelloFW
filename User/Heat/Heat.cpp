@@ -75,14 +75,14 @@ uint8_t Heat::getDataTransmit() {
 //------------------------Гистерезис температур в зависимости от режима-----------
 
 uint8_t Heat::HysteresisTemp() {
-	if (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) {//////////////////////////////////////////////////
+	if (Fram::framRdOneAddress(Fram::TARGET_MODE) == 1) {
 	        return tempPreOver;
 	    }
 	    return tempOtherOver;
 }
 //--------------------------------Управление внешним кулером---------------------
 void Heat::setOutCooler() {//    константа        если режим не "set"
-    if (Control::ovenTemper > safeTemperature && Fram::framRdOneAddress(Fram::TARGET_MODE) != 3) {///////////////////////////////////
+    if (Control::ovenTemper > safeTemperature && Fram::framRdOneAddress(Fram::TARGET_MODE) != 3) {
         HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_SET);    // кулер ON
     } else {
         HAL_GPIO_WritePin(FanOut_GPIO_Port, FanOut_Pin, GPIO_PIN_RESET);  // кулер OFF

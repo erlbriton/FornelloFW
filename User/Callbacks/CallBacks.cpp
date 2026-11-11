@@ -10,7 +10,10 @@
 #include "Heat.hpp"
 #include "SetTimer.hpp"
 #include "melody_gpio.hpp"
-#include "Heat.hpp"
+
+constexpr uint8_t RELAY_DOWN_BIT  = 0;
+constexpr uint8_t RELAY_GRL_BIT   = 1;
+constexpr uint8_t RELAY_RIGHT_BIT = 2;
 
 //---------------------ADCManager-----------------------------
 void ADCManager::handleADCConversionComplete(ADC_HandleTypeDef* hadc) {
@@ -33,10 +36,7 @@ void ADCManager::handleADCConversionComplete(ADC_HandleTypeDef* hadc) {
 const TimerManager::TimerMap TimerManager::timerMap[ ] = {
 	{ TIM2,  &TimerManager::handleTIM2  },
 	{ TIM4,  &TimerManager::handleTIM4  },
-    { TIM5,  &TimerManager::handleTIM5  },
     { TIM6,  &TimerManager::handleTIM6  },
-    { TIM9,  &TimerManager::handleTIM9  },
-    { TIM12, &TimerManager::handleTIM12 },
 };
 
 // Обработчик прерывания таймера
@@ -59,54 +59,6 @@ void TimerManager::handleTIM2() {
 	Button::isEncDone(true);
 }
 
-void TimerManager::handleTIM9() {
-//    num = 1 - num;
-//    TIM7->CR1 = TIM7->CR1 + recount[num]; // Пуск/стоп TIM7
-//    if (num) {
-//        GPIOB->BSRR |= GPIO_PIN_15 << 16U; // Спикер выкл
-//    }
-//    numSound++;
-//    if (numSound == 8) {
-//        HAL_TIM_Base_Stop_IT(&htim7);
-//        HAL_TIM_Base_Stop_IT(&htim9);
-//        GPIOB->BSRR |= GPIO_PIN_15 << 16U; // Спикер выкл
-//        numSound = 0;
-//    }
-}
-//-------------------------Параметры звука переключения режимов и кнопки
-//void TimerManager::handleTIM7() {
-//    GPIOB->BSRR = ((GPIOB->ODR & GPIO_PIN_15) << 16U) | (~GPIOB->ODR & GPIO_PIN_15);
-//}
-
-void TimerManager::handleTIM12() {
-//    num = 1 - num;
-//    TIM7->CR1 = TIM7->CR1 + recount[num]; // Пуск/стоп TIM7
-//    //(num) && (GPIOB->BSRR |= GPIO_PIN_15 << 16U); // Спикер выкл
-//    if (num != 0) {
-//        GPIOB->BSRR = (uint32_t)GPIO_PIN_15 << 16U; // Спикер выкл
-//    }
-//    numSound = numSound + 1;
-////    (numSound == 2) && (HAL_TIM_Base_Stop_IT(&htim7),
-////                                          HAL_TIM_Base_Stop_IT(&htim12),
-////                                          GPIOB->BSRR |= GPIO_PIN_15 << 16U, // Спикер выкл
-////                                          numSound = 0);
-//    if (numSound == 2) {
-//        HAL_TIM_Base_Stop_IT(&htim7);
-//        HAL_TIM_Base_Stop_IT(&htim12);
-//        GPIOB->BSRR = (uint32_t)GPIO_PIN_15 << 16U; // Спикер выкл
-//        numSound = 0;
-//    }
-}
-//-----------------Время-------------------------------------------------
-//void TimerManager::handleTIM10() {
-//    SetTimer::totalTime += 1; // Общее время нагрева
-//    SetTimer::secondCounter += 1;
-//    (SetTimer::secondCounter == 60) &&
-//    		( SetTimer::minCounterInc += 1,
-//    		 SetTimer::minCounterDec -= 1,
-//			 SetTimer::secondCounter = 0);
-//}
-
 void TimerManager::handleTIM4() {
     // Используем явное присваивание для исключения предупреждений volatile
     SetTimer::totalTime = SetTimer::totalTime + 1; // Общее время нагрева
@@ -121,13 +73,12 @@ void TimerManager::handleTIM4() {
 }
 
 void TimerManager::handleTIM6() {
-	(Control::ovenTemper >= Heat::tempMax) && (Button::regim1Button(), 0);
+    if (Control::ovenTemper >= Heat::tempMax) {
+        Button::regim1Button();
+    }
 }
-void TimerManager::handleTIM5() {
-	//Protection::TIM5_Handler();
-}
-//void TimerManager::handleTIM11() {
-//	MelodyPlayer::handleTimerInterrupt();
+//void TimerManager::handleTIM5() {
+//	//Protection::TIM5_Handler();
 //}
 
 /*Логика защиты ТЭНов:
@@ -183,14 +134,11 @@ uint8_t EXTIManager::checkHeaters(uint8_t buttonMode) {
     // Если режим 3 — ТЭНы работают согласно программе
     if(buttonMode == 2) {
         uint8_t relayByte = Heat::getDataTransmit();
-        cmdOn[0] = (relayByte & (1 << 0));//Down
-        cmdOn[1] = (relayByte & (1 << 1)) != 0;//Grl
-        cmdOn[2] = (relayByte & (1 << 2)) != 0;//Right
+        cmdOn[0] = (relayByte & (1 << RELAY_DOWN_BIT))  != 0;
+        cmdOn[1] = (relayByte & (1 << RELAY_GRL_BIT))   != 0;
+        cmdOn[2] = (relayByte & (1 << RELAY_RIGHT_BIT)) != 0;
     }
     // Если режим 0 или 1 — команды ВСЕГДА false (ток запрещен)
-//    else if (buttonMode == 0 || buttonMode == 1) {
-//        // cmdOn уже инициализирован false, ничего не делаем
-//    }
     // 2. Единый цикл проверки
     for (uint8_t i = 0; i < 3; i++) {
         bool hasCurrent = (now - lastPulse[i]) < pulseValid;
@@ -230,7 +178,7 @@ uint8_t EXTIManager::getRealStatus() {
 //---------------------Колбеки-----------------------------
 ADCManager adcManager;
 TimerManager timerManager;
-//extern EXTIManager extiManager;
+extern EXTIManager extiManager;
 
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {

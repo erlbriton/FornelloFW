@@ -22,12 +22,13 @@ class TimerManager {// Класс для обработки таймеров
 public:
     void handleTimerInterrupt(TIM_HandleTypeDef* htim);
 private:
+        void handleTIM1();
         void handleTIM2();
         void handleTIM4();
-        void handleTIM9();
+       // void handleTIM9();
         void handleTIM7();
-        void handleTIM12();
-        void handleTIM10();
+        //void handleTIM12();
+        //void handleTIM10();
         void handleTIM6();
         void handleTIM5();
     //void handleTIM11();
