@@ -25,13 +25,9 @@ private:
         void handleTIM1();
         void handleTIM2();
         void handleTIM4();
-       // void handleTIM9();
         void handleTIM7();
-        //void handleTIM12();
-        //void handleTIM10();
         void handleTIM6();
         void handleTIM5();
-    //void handleTIM11();
 
     using TimerHandler = void (TimerManager::*)(); // Указатель на метод класса
 
@@ -45,7 +41,6 @@ private:
     bool num = 0;
     uint8_t numSound = 0;
     int recount[2] = {1, -1};
-    //uint8_t ovenTemper = 0;
 };
 class EXTIManager {
 public:
