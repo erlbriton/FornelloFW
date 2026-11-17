@@ -22,7 +22,7 @@ uint32_t Control::bakeTemper() {//Измеряем температуру в д�
 	kVref = ((float) VREF / (float) tVref);
 	//ovenTemper = (((0.0814 * tempADC) - 50) * kVref); //Текущая температура в духовке//////////////////////
 	ovenTemper = (((tempADC - 592.5) / 11.83) * kVref); //Текущая температура в духовке//////////////////////
-	(ovenTemper < 15) && (ovenTemper = 15);//На время наладки
+	(ovenTemper < 20) && (ovenTemper = 20);//На время наладки
 	buf_485[CHECK_FIRST] = 151;
 	buf_485[CHECK_LAST] = 151;
 	buf_485[TEMP_1] = ovenTemper % 100 % 10; //Единицы
